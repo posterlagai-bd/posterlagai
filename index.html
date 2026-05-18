@@ -76,6 +76,22 @@ nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-co
 .art-panel-three{width:28%;height:36%;left:24%;bottom:9%;transform:rotate(8deg);background:linear-gradient(160deg,#cc1100,#1b1b1b 46%,#f3f0e8 47%);animation:floatThree 7s ease-in-out infinite;}
 .art-ring{position:absolute;width:120px;height:120px;right:12%;bottom:15%;border-radius:50%;border:18px solid rgba(204,17,0,.9);box-shadow:0 0 45px rgba(204,17,0,.35);}
 @keyframes artDrift{to{transform:translateX(-120px);}}
+@keyframes logoGlow{0%,100%{filter:drop-shadow(0 0 14px rgba(204,17,0,.5));}50%{filter:drop-shadow(0 0 32px rgba(204,17,0,.9));}}
+
+/* INTRO ANIMATION */
+#introOverlay{position:fixed;inset:0;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0;}
+#introOverlay.fade-out{animation:introFade .7s ease forwards;}
+@keyframes introFade{to{opacity:0;pointer-events:none;}}
+.intro-logo-wrap{position:relative;display:flex;align-items:center;justify-content:center;}
+.intro-logo-img{width:180px;height:180px;object-fit:contain;opacity:0;animation:introLogoIn .6s ease .3s forwards;}
+@keyframes introLogoIn{from{opacity:0;transform:scale(.5) rotate(-15deg);}to{opacity:1;transform:scale(1) rotate(0deg);}}
+.intro-brand{font-family:'Poppins',sans-serif;font-weight:800;font-size:3rem;letter-spacing:.12em;color:#fff;opacity:0;animation:introBrandIn .5s ease .85s forwards;text-align:center;}
+.intro-brand span{color:#cc1100;}
+.intro-tagline{font-family:'Poppins',sans-serif;font-weight:800;font-size:1.05rem;letter-spacing:.15em;color:#cc1100;opacity:0;animation:introTagIn .5s ease 1.2s forwards;text-align:center;}
+.intro-bar{width:0;height:3px;background:var(--red);margin-top:1.5rem;animation:introBar 1s ease 1.5s forwards;border-radius:99px;}
+@keyframes introBrandIn{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+@keyframes introTagIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+@keyframes introBar{from{width:0;}to{width:220px;}}
 @keyframes floatOne{50%{transform:translateY(-16px) rotate(-8deg);}}
 @keyframes floatTwo{50%{transform:translateY(18px) rotate(5deg);}}
 @keyframes floatThree{50%{transform:translateY(-12px) rotate(13deg);}}
@@ -463,6 +479,16 @@ footer{background:var(--black);border-top:1px solid #111;padding:2.5rem 5rem;dis
 </head>
 <body>
 
+<!-- ══ INTRO OVERLAY ══ -->
+<div id="introOverlay">
+  <div class="intro-logo-wrap">
+    <img class="intro-logo-img" id="introLogoImg" src="" onerror="this.style.display='none'" alt="Poster Lagai">
+  </div>
+  <div class="intro-brand">POSTER <span>LAGAI</span></div>
+  <div class="intro-tagline">Wall e VIBE nai? Poster Lagai!</div>
+  <div class="intro-bar"></div>
+</div>
+
 <!-- ══ LOGIN ══ -->
 <div id="layerLogin">
   <div class="login-wrap">
@@ -484,7 +510,13 @@ footer{background:var(--black);border-top:1px solid #111;padding:2.5rem 5rem;dis
 <!-- ══ STOREFRONT ══ -->
 <div id="layerStore">
 <nav>
-  <div class="nav-logo" onclick="storeScrollTop()">POSTER <span id="nav-brand">LAGAI</span></div>
+  <div class="nav-logo" onclick="storeScrollTop()" style="display:flex;align-items:center;gap:.6rem;">
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAF8mlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNy4yLWMwMDAgNzkuMWI2NWE3OWI0LCAyMDIyLzA2LzEzLTIyOjAxOjAxICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdEV2dD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlRXZlbnQjIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iIHhtbG5zOnBob3Rvc2hvcD0iaHR0cDovL25zLmFkb2JlLmNvbS9waG90b3Nob3AvMS4wLyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgMjMuNSAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDI0LTAxLTAxVDAwOjAwOjAwKzAwOjAwIiB4bXA6TWV0YWRhdGFEYXRlPSIyMDI0LTAxLTAxVDAwOjAwOjAwKzAwOjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAyNC0wMS0wMVQwMDowMDowMCswMDowMCIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo0YjI0YjQ3Zi02NWUyLTRlNDItODg4NS0zMzFkMDNiZTZhZjYiIHhtcE1NOkRvY3VtZW50SUQ9ImFkb2JlOmRvY2lkOnBob3Rvc2hvcDo0YjI0YjQ3Zi02NWUyLTRlNDItODg4NS0zMzFkMDNiZTZhZjYiIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo0YjI0YjQ3Zi02NWUyLTRlNDItODg4NS0zMzFkMDNiZTZhZjYiIGRjOmZvcm1hdD0iaW1hZ2UvcG5nIiBwaG90b3Nob3A6Q29sb3JNb2RlPSIzIj4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY3JlYXRlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDo0YjI0YjQ3Zi02NWUyLTRlNDItODg4NS0zMzFkMDNiZTZhZjYiIHN0RXZ0OndoZW49IjIwMjQtMDEtMDFUMDA6MDA6MDArMDA6MDAiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCAyMy41IChXaW5kb3dzKSIvPiA8L3JkZjpTZXE+IDwveG1wTU06SGlzdG9yeT4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4B" 
+      onerror="this.style.display='none'" 
+      id="nav-logo-img"
+      style="height:38px;width:38px;object-fit:contain;border-radius:4px;" alt="Poster Lagai Logo">
+    <span>POSTER <span id="nav-brand">LAGAI</span></span>
+  </div>
   <ul class="nav-links">
     <li><a onclick="storeScroll('#shop')">Posters</a></li>
     <li><a onclick="storeScroll('#polaroids')">Polaroids</a></li>
@@ -494,10 +526,7 @@ footer{background:var(--black);border-top:1px solid #111;padding:2.5rem 5rem;dis
     <li><a onclick="storeScroll('#about')">About</a></li>
   </ul>
   <div class="nav-right">
-    <a class="nav-wa-btn" href="https://wa.me/message/CLLGMN3MFZTKD1" target="_blank">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-      WhatsApp Us
-    </a>
+
     <button class="cart-btn" onclick="openCart()">
       🛒 <span style="font-size:.75rem;font-weight:700;">Cart</span>
       <span class="cart-count" id="cartCount">0</span>
@@ -509,7 +538,13 @@ footer{background:var(--black);border-top:1px solid #111;padding:2.5rem 5rem;dis
 <section class="hero">
   <div class="hero-left">
     <p class="hero-eyebrow" id="store-eyebrow">Dhaka's Retro Poster House</p>
-    <h1 class="hero-title">WALLS<br>THAT<br><span class="outline">SPEAK</span></h1>
+    <div style="display:flex;align-items:center;gap:1.2rem;margin-bottom:1.2rem;">
+      <img src="" id="hero-logo-img" onerror="this.style.display='none'" style="height:72px;width:72px;object-fit:contain;filter:drop-shadow(0 0 18px rgba(204,17,0,.5));animation:logoGlow 3s ease-in-out infinite;" alt="">
+      <div>
+        <h1 class="hero-title" style="margin-bottom:0;">WALL E<br><span class="outline">VIBE</span><br>NAI?</h1>
+      </div>
+    </div>
+    <div style="font-family:'Poppins',sans-serif;font-weight:800;font-size:clamp(1.6rem,3vw,2.8rem);color:var(--red);letter-spacing:.04em;margin-bottom:1.2rem;line-height:1;">POSTER LAGAI!</div>
     <p class="hero-sub" id="store-hero-sub">Posters. Polaroids. Magazines. Hand-picked, print-ready wall art with vintage soul — delivered to your door.</p>
     <div class="hero-btns">
       <button class="btn-primary" onclick="storeScroll('#shop')" id="store-cta1">Shop the Collection</button>
@@ -1511,13 +1546,32 @@ function dzDrop(e,inputId,previewId){e.preventDefault();dzLeave(e.currentTarget)
 function fileToUrl(input,inputId,previewId){const f=input.files[0];if(f)readFile(f,inputId,previewId);}
 function readFile(file,inputId,previewId){const r=new FileReader();r.onload=e=>{document.getElementById(inputId).value=e.target.result;document.getElementById(previewId).innerHTML=`<img class="img-preview selected" src="${e.target.result}">`;toast('Image loaded — save to confirm');};r.readAsDataURL(file);}
 
+// Embed the uploaded logo as a data URL
+const LOGO_SRC = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAhGVYSWZNTQAqAAAACAAFARIAAwAAAAEAAQAAARoABQAAAAEAAABKARsABQAAAAEAAABSASgAAwAAAAEAAgAAh2kABAAAAAEAAABaAAAAAAAAAEgAAAABAAAASAAAAAEAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAgKADAAQAAAABAAAAgAAAAADhTXhbAAAACXBIWXMAAAsTAAALEwEAmpwYAAABWWlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNi4wLjAiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyI+CiAgICAgICAgIDx0aWZmOk9yaWVudGF0aW9uPjE8L3RpZmY6T3JpZW50YXRpb24+CiAgICAgIDwvcmRmOkRlc2NyaXB0aW9uPgogICA8L3JkZjpSREY+CjwveDp4bXBtZXRhPgoZXuEHAAAXbElEQVR42u2deZBU1RXGf2/m9TLMwoAzDAMMDMimgCKLqIiKiqiJW9y3uMUlJiaWqcQsVZWkjKkklZhoxLhEExM1Gi1x36K4oKiooCiCKIssssPMwAzMdM/rN/0enXnTt7tf9+v3uqv5qk7VdL/77j2nzz3n3HPOuU+pgsJAqVQqr9H2pZS/1VrfgNZnAM8CHkA3EA==';
+
+// Set logo everywhere
+function setLogos(){
+  ['introLogoImg','nav-logo-img','hero-logo-img'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.src=LOGO_SRC;el.style.display='';}
+  });
+}
+
 (function(){
+  setLogos();
   applyTexts();applyCfg();
   renderPosters();renderPolaroids();renderMagazines();renderReviews();
   updateCartCount();
   document.getElementById('layerStore').style.display='block';
   document.getElementById('layerLogin').style.display='none';
   document.getElementById('layerAdmin').style.display='none';
+
+  // Dismiss intro after animation
+  setTimeout(()=>{
+    const o=document.getElementById('introOverlay');
+    o.classList.add('fade-out');
+    setTimeout(()=>o.remove(),700);
+  },2600);
 })();
 </script>
 </body>
