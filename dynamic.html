@@ -58,15 +58,34 @@ nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-co
 .hero-art{position:absolute;inset:0;}
 .hero-art::before{content:'';position:absolute;inset:-20%;background:repeating-linear-gradient(115deg,rgba(255,255,255,.05) 0 1px,transparent 1px 24px);animation:artDrift 18s linear infinite;}
 @keyframes artDrift{to{transform:translateX(-120px);}}
-.art-panel{position:absolute;box-shadow:0 24px 60px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1);}
-.art-panel-one{width:28%;height:44%;left:14%;top:12%;transform:rotate(-12deg);background:linear-gradient(160deg,rgba(255,255,255,.15),rgba(204,17,0,.7));animation:floatOne 8s ease-in-out infinite;overflow:hidden;}
-.art-panel-two{width:28%;height:52%;right:15%;top:10%;transform:rotate(9deg);background:linear-gradient(145deg,#f3f0e8 0 8%,#262626 8% 72%,#cc1100 72%);animation:floatTwo 9s ease-in-out infinite;overflow:hidden;}
-.art-panel-three{width:28%;height:36%;left:24%;bottom:9%;transform:rotate(8deg);background:linear-gradient(160deg,#cc1100,#1b1b1b 46%,#f3f0e8 47%);animation:floatThree 7s ease-in-out infinite;overflow:hidden;}
-.art-panel-one img,.art-panel-two img,.art-panel-three img{width:100%;height:100%;object-fit:cover;display:block;}
-.art-ring{position:absolute;width:120px;height:120px;right:12%;bottom:15%;border-radius:50%;border:18px solid rgba(204,17,0,.9);box-shadow:0 0 45px rgba(204,17,0,.35);}
-@keyframes floatOne{50%{transform:translateY(-16px) rotate(-8deg);}}
-@keyframes floatTwo{50%{transform:translateY(18px) rotate(5deg);}}
-@keyframes floatThree{50%{transform:translateY(-12px) rotate(13deg);}}
+.art-panel{position:absolute;box-shadow:0 16px 40px rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.1);overflow:hidden;}
+.art-panel img{width:100%;height:100%;object-fit:cover;display:block;}
+/* 12 panels — scattered collage */
+.art-panel-one  {width:22%;height:34%;left:4%;top:5%;  transform:rotate(-7deg); background:linear-gradient(160deg,rgba(255,255,255,.15),rgba(204,17,0,.7)); animation:fp1 8s  ease-in-out infinite;}
+.art-panel-two  {width:26%;height:42%;left:29%;top:3%; transform:rotate(4deg);  background:linear-gradient(145deg,#f3f0e8 0 8%,#262626 8% 72%,#cc1100 72%); animation:fp2 9s  ease-in-out infinite;}
+.art-panel-three{width:22%;height:30%;right:5%;top:6%; transform:rotate(-5deg);background:linear-gradient(160deg,#cc1100,#1b1b1b 46%,#f3f0e8 47%); animation:fp3 7s  ease-in-out infinite;}
+.art-panel-four {width:24%;height:36%;left:3%;top:42%; transform:rotate(6deg); background:linear-gradient(135deg,#1a0000,#cc1100 60%,#0d0d0d);            animation:fp4 10s ease-in-out infinite;}
+.art-panel-five {width:22%;height:28%;left:29%;top:48%;transform:rotate(-4deg);background:linear-gradient(150deg,#f3f0e8,#cc1100 50%,#1a1a1a);            animation:fp5 8.5s ease-in-out infinite;}
+.art-panel-six  {width:26%;height:38%;right:3%;top:38%;transform:rotate(8deg); background:linear-gradient(160deg,#0a0a0a,rgba(204,17,0,.8));                 animation:fp6 9.5s ease-in-out infinite;}
+.art-panel-seven{width:20%;height:26%;left:14%;top:74%;transform:rotate(-6deg);background:linear-gradient(140deg,#cc1100,#f3f0e8 50%,#cc1100);             animation:fp7 7.5s ease-in-out infinite;}
+.art-panel-eight{width:24%;height:32%;left:38%;top:70%;transform:rotate(5deg); background:linear-gradient(155deg,#1b1b1b,#cc1100 55%,#f3f0e8);             animation:fp8 11s  ease-in-out infinite;}
+.art-panel-nine {width:22%;height:28%;right:4%;top:75%;transform:rotate(-3deg);background:linear-gradient(165deg,#f3f0e8,#1a0000 45%,#cc1100);             animation:fp9 8.2s ease-in-out infinite;}
+.art-panel-ten  {width:18%;height:22%;left:2%;top:78%; transform:rotate(9deg); background:linear-gradient(130deg,#cc1100,#0a0a0a);                          animation:fp10 9.8s ease-in-out infinite;}
+.art-panel-eleven{width:20%;height:26%;left:56%;top:8%;transform:rotate(-9deg);background:linear-gradient(145deg,#0d0d0d,#cc1100 60%,#f3f0e8);             animation:fp11 7.8s ease-in-out infinite;}
+.art-panel-twelve{width:18%;height:24%;right:6%;top:55%;transform:rotate(11deg);background:linear-gradient(150deg,#f3f0e8,#cc1100);                         animation:fp12 10.5s ease-in-out infinite;}
+.art-ring{position:absolute;width:90px;height:90px;right:8%;bottom:8%;border-radius:50%;border:14px solid rgba(204,17,0,.9);box-shadow:0 0 40px rgba(204,17,0,.35);z-index:20;}
+@keyframes fp1 {50%{transform:translateY(-14px) rotate(-3deg);}}
+@keyframes fp2 {50%{transform:translateY(16px)  rotate(8deg);}}
+@keyframes fp3 {50%{transform:translateY(-10px) rotate(-9deg);}}
+@keyframes fp4 {50%{transform:translateY(12px)  rotate(10deg);}}
+@keyframes fp5 {50%{transform:translateY(-16px) rotate(-8deg);}}
+@keyframes fp6 {50%{transform:translateY(14px)  rotate(4deg);}}
+@keyframes fp7 {50%{transform:translateY(-11px) rotate(-10deg);}}
+@keyframes fp8 {50%{transform:translateY(18px)  rotate(9deg);}}
+@keyframes fp9 {50%{transform:translateY(-13px) rotate(-6deg);}}
+@keyframes fp10{50%{transform:translateY(10px)  rotate(13deg);}}
+@keyframes fp11{50%{transform:translateY(-15px) rotate(-13deg);}}
+@keyframes fp12{50%{transform:translateY(12px)  rotate(15deg);}}
 
 /* ── TICKER ── */
 .ticker{background:var(--red);padding:.65rem 0;overflow:hidden;white-space:nowrap;}
@@ -465,9 +484,18 @@ footer{background:var(--black);border-top:1px solid #111;padding:2.5rem 5rem;dis
   </div>
   <div class="hero-right" aria-hidden="true">
     <div class="hero-art">
-      <div class="art-panel art-panel-one" id="heroPanel1"></div>
-      <div class="art-panel art-panel-two" id="heroPanel2"></div>
-      <div class="art-panel art-panel-three" id="heroPanel3"></div>
+      <div class="art-panel art-panel-one"    id="heroPanel1"></div>
+      <div class="art-panel art-panel-two"    id="heroPanel2"></div>
+      <div class="art-panel art-panel-three"  id="heroPanel3"></div>
+      <div class="art-panel art-panel-four"   id="heroPanel4"></div>
+      <div class="art-panel art-panel-five"   id="heroPanel5"></div>
+      <div class="art-panel art-panel-six"    id="heroPanel6"></div>
+      <div class="art-panel art-panel-seven"  id="heroPanel7"></div>
+      <div class="art-panel art-panel-eight"  id="heroPanel8"></div>
+      <div class="art-panel art-panel-nine"   id="heroPanel9"></div>
+      <div class="art-panel art-panel-ten"    id="heroPanel10"></div>
+      <div class="art-panel art-panel-eleven" id="heroPanel11"></div>
+      <div class="art-panel art-panel-twelve" id="heroPanel12"></div>
       <div class="art-ring"></div>
     </div>
   </div>
@@ -827,7 +855,7 @@ footer{background:var(--black);border-top:1px solid #111;padding:2.5rem 5rem;dis
 
       <!-- HERO IMAGES -->
       <div class="admin-page" id="page-hero">
-        <div class="admin-header"><div><div class="admin-page-title">HERO IMAGES</div><div class="admin-page-sub">Upload your own designs for the 3 floating panels on the homepage.</div></div></div>
+        <div class="admin-header"><div><div class="admin-page-title">HERO IMAGES</div><div class="admin-page-sub">Upload your own designs for the 12 floating panels on the homepage.</div></div></div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;" id="heroPanelGrid"></div>
       </div>
 
@@ -1677,14 +1705,14 @@ function renderHeroAdminPreview(n,src){
   else{prev.innerHTML='<span style="opacity:.3;font-size:.75rem;">No image uploaded</span>';}
 }
 function loadHeroPanels(){
-  [1,2,3].forEach(n=>{
+  [1,2,3,4,5,6,7,8,9,10,11,12].forEach(n=>{
     const data=localStorage.getItem('pl2_hero'+n);
     if(data){try{applyHeroPanel(n,data);}catch(e){}}
   });
 }
 function renderHeroAdmin(){
-  const labels=['Top Left','Top Right','Bottom'];
-  document.getElementById('heroPanelGrid').innerHTML=[1,2,3].map(n=>{
+  const labels=['Top Left','Top Center-Left','Top Right','Mid Left','Mid Center','Mid Right','Lower Left','Lower Center','Lower Right','Bottom Far-Left','Top Far-Right','Mid Far-Right'];
+  document.getElementById('heroPanelGrid').innerHTML=[1,2,3,4,5,6,7,8,9,10,11,12].map(n=>{
     const data=localStorage.getItem('pl2_hero'+n);
     const preview=data?`<img src="${data}" style="width:100%;height:100%;object-fit:cover;">`:`<span style="opacity:.3;font-size:.75rem;">No image uploaded</span>`;
     return`<div class="a-card">
