@@ -529,13 +529,13 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
 .ie-mini-btn{background:rgba(204,17,0,.15);border:1px solid var(--red);color:var(--red);font-size:.72rem;padding:.2rem .5rem;cursor:pointer;border-radius:2px;flex-shrink:0;}
 
 /* Inline Popover for cat/poster edits */
-#ieXPopover{position:fixed;z-index:2000;background:#1a1a1a;border:1px solid #333;border-top:3px solid var(--red);min-width:320px;max-width:420px;box-shadow:0 12px 40px rgba(0,0,0,.7);display:none;}
-#ieXPopover.open{display:block;}
+#ieXPopover{position:fixed;z-index:2000;background:#1a1a1a;border:1px solid #333;border-top:3px solid var(--red);min-width:320px;max-width:420px;box-shadow:0 12px 40px rgba(0,0,0,.7);display:none;flex-direction:column;max-height:90vh;}
+#ieXPopover.open{display:flex;}
 .iex-header{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.2rem;border-bottom:1px solid #2e2e2e;}
 .iex-title{font-family:'Poppins',sans-serif;font-weight:800;font-size:.75rem;letter-spacing:.2em;color:var(--red);}
 .iex-close{background:none;border:none;color:#fff;font-size:1.1rem;cursor:pointer;opacity:.5;}
 .iex-close:hover{opacity:1;}
-.iex-body{padding:1rem 1.2rem;max-height:70vh;overflow-y:auto;}
+.iex-body{padding:1rem 1.2rem;overflow-y:auto;flex:1;}.iex-foot{display:flex;gap:.6rem;padding:.9rem 1.2rem;border-top:1px solid #2e2e2e;flex-shrink:0;}
 .iex-label{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--red);display:block;margin-bottom:.35rem;font-weight:600;}
 .iex-input{width:100%;background:#0a0a0a;border:1px solid #2e2e2e;border-bottom:2px solid var(--red-dark);color:#fff;font-size:.9rem;padding:.6rem .9rem;outline:none;margin-bottom:.8rem;}
 .iex-drop{border:2px dashed #cc1100;padding:1.2rem;text-align:center;position:relative;cursor:pointer;background:rgba(204,17,0,.06);margin-bottom:.8rem;border-radius:4px;}
