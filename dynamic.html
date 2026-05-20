@@ -495,15 +495,15 @@ body.edit-mode [data-editable]:hover{outline:2px dashed rgba(204,17,0,.8);outlin
 body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);position:absolute;top:-22px;left:0;background:#cc1100;color:#fff;font-family:'Poppins',sans-serif;font-weight:700;font-size:.55rem;letter-spacing:.1em;padding:.18rem .5rem;white-space:nowrap;z-index:8000;pointer-events:none;}
 
 /* inline edit popover */
-#iePopover{display:none;position:fixed;z-index:99999;background:#111;border:1px solid #cc1100;border-top:3px solid #cc1100;min-width:320px;max-width:420px;box-shadow:0 12px 60px rgba(0,0,0,.9);border-radius:2px;}
-#iePopover.open{display:block;}
+#iePopover{display:none;position:fixed;z-index:99999;background:#111;border:1px solid #cc1100;border-top:3px solid #cc1100;min-width:320px;max-width:420px;box-shadow:0 12px 60px rgba(0,0,0,.9);border-radius:2px;flex-direction:column;max-height:90vh;overflow:hidden;}
+#iePopover.open{display:flex;}
 #ieOverlay{display:none;position:fixed;inset:0;z-index:99998;background:transparent;}
 #ieOverlay.open{display:block;}
 .iep-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;border-bottom:1px solid #2a2a2a;background:#0d0d0d;}
 .iep-title{font-family:'Poppins',sans-serif;font-weight:800;font-size:.78rem;letter-spacing:.12em;color:#cc1100;}
 .iep-close{background:rgba(255,255,255,.08);border:1px solid #333;color:#fff;font-size:1rem;cursor:pointer;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;}
 .iep-close:hover{background:#cc1100;border-color:#cc1100;}
-.iep-body{padding:1rem;max-height:60vh;overflow-y:auto;}
+.iep-body{padding:1rem;max-height:60vh;overflow-y:auto;flex:1;min-height:0;}
 .iep-label{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:#cc1100;font-weight:600;margin-bottom:.4rem;display:block;}
 .iep-input,.iep-textarea{width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-bottom:2px solid #8b0000;color:#fff;font-family:'Inter',sans-serif;font-size:.85rem;padding:.6rem .8rem;outline:none;margin-bottom:.8rem;resize:vertical;box-sizing:border-box;}
 .iep-textarea{min-height:80px;}
@@ -529,13 +529,13 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
 .ie-mini-btn{background:rgba(204,17,0,.15);border:1px solid var(--red);color:var(--red);font-size:.72rem;padding:.2rem .5rem;cursor:pointer;border-radius:2px;flex-shrink:0;}
 
 /* Inline Popover for cat/poster edits */
-#ieXPopover{position:fixed;z-index:9999;background:#1a1a1a;border:1px solid #333;border-top:3px solid var(--red);min-width:320px;max-width:420px;box-shadow:0 12px 40px rgba(0,0,0,.7);display:none;flex-direction:column;max-height:90vh;}
+#ieXPopover{position:fixed;z-index:9999;background:#1a1a1a;border:1px solid #333;border-top:3px solid var(--red);min-width:320px;max-width:420px;box-shadow:0 12px 40px rgba(0,0,0,.7);display:none;flex-direction:column;max-height:90vh;overflow:hidden;}
 #ieXPopover.open{display:flex;}
 .iex-header{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.2rem;border-bottom:1px solid #2e2e2e;}
 .iex-title{font-family:'Poppins',sans-serif;font-weight:800;font-size:.75rem;letter-spacing:.2em;color:var(--red);}
 .iex-close{background:none;border:none;color:#fff;font-size:1.1rem;cursor:pointer;opacity:.5;}
 .iex-close:hover{opacity:1;}
-.iex-body{padding:1rem 1.2rem;overflow-y:auto;flex:1;}.iex-foot{display:flex;gap:.6rem;padding:.9rem 1.2rem;border-top:1px solid #2e2e2e;flex-shrink:0;}
+.iex-body{padding:1rem 1.2rem;overflow-y:auto;flex:1;min-height:0;}.iex-foot{display:flex;gap:.6rem;padding:.9rem 1.2rem;border-top:1px solid #2e2e2e;flex-shrink:0;}
 .iex-label{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--red);display:block;margin-bottom:.35rem;font-weight:600;}
 .iex-input{width:100%;background:#0a0a0a;border:1px solid #2e2e2e;border-bottom:2px solid var(--red-dark);color:#fff;font-size:.9rem;padding:.6rem .9rem;outline:none;margin-bottom:.8rem;}
 .iex-drop{border:2px dashed #cc1100;padding:1.2rem;text-align:center;position:relative;cursor:pointer;background:rgba(204,17,0,.06);margin-bottom:.8rem;border-radius:4px;}
@@ -544,7 +544,7 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
 .iex-img-thumb{position:relative;width:70px;height:90px;border:1px solid #333;overflow:hidden;}
 .iex-img-thumb img{width:100%;height:100%;object-fit:cover;}
 .iex-img-del{position:absolute;top:2px;right:2px;background:rgba(204,17,0,.9);color:#fff;border:none;cursor:pointer;font-size:.65rem;width:18px;height:18px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;}
-.iex-foot{display:flex;gap:.6rem;padding:.9rem 1.2rem;border-top:1px solid #2e2e2e;}
+.iex-foot{display:flex;gap:.6rem;padding:.9rem 1.2rem;border-top:1px solid #2e2e2e;flex-shrink:0;}
 .iex-save{font-family:'Poppins',sans-serif;font-weight:700;font-size:.72rem;letter-spacing:.12em;color:#000;background:var(--red);border:none;padding:.65rem 1.4rem;cursor:pointer;}
 .iex-del{font-family:'Poppins',sans-serif;font-weight:700;font-size:.72rem;letter-spacing:.1em;color:#ff4444;background:transparent;border:1px solid #ff4444;padding:.65rem 1rem;cursor:pointer;}
 .iex-cancel{font-family:'Poppins',sans-serif;font-weight:600;font-size:.72rem;color:#fff;background:transparent;border:1px solid #333;padding:.65rem 1rem;cursor:pointer;}
@@ -2453,14 +2453,17 @@ function openIEP(el,e){
 function positionIEP(e){
   var iep=document.getElementById('iePopover');
   iep.style.visibility='hidden';
-  iep.style.display='block';
+  iep.style.display='flex';
+  iep.style.flexDirection='column';
+  var maxH=Math.floor(window.innerHeight*0.9);
+  iep.style.maxHeight=maxH+'px';
   var pw=iep.offsetWidth||340;
-  var ph=iep.offsetHeight||300;
   iep.style.visibility='';
   var vw=window.innerWidth, vh=window.innerHeight;
   var x=e.clientX+16, y=e.clientY+16;
   if(x+pw>vw-10) x=Math.max(8,e.clientX-pw-16);
-  if(y+ph>vh-10) y=Math.max(8,vh-ph-10);
+  if(y+maxH>vh-8) y=Math.max(8,vh-maxH-8);
+  y=Math.max(8,y);
   iep.style.left=x+'px';
   iep.style.top=y+'px';
 }
@@ -2470,6 +2473,7 @@ function closeIEP(){
   var ov = document.getElementById('ieOverlay');
   pop.classList.remove('open');
   pop.style.display = 'none';
+  pop.style.visibility = '';
   ov.classList.remove('open');
   ov.style.display = 'none';
 }
@@ -2513,13 +2517,19 @@ function positionIEX(e){
   pop.style.visibility = 'hidden';
   pop.style.display = 'flex';
   pop.style.flexDirection = 'column';
-  pop.style.maxHeight = '90vh';
+  var maxH = Math.floor(window.innerHeight * 0.9);
+  pop.style.maxHeight = maxH + 'px';
   var pw = pop.offsetWidth || 360;
+  var ph = pop.offsetHeight || 400;
   pop.style.visibility = '';
   var vw = window.innerWidth, vh = window.innerHeight;
   var x = e.clientX + 16;
-  var y = Math.max(8, Math.min(e.clientY + 16, vh * 0.05));
+  var y = e.clientY + 16;
+  // Flip horizontal if it would overflow right edge
   if(x + pw > vw - 10) x = Math.max(8, e.clientX - pw - 16);
+  // Clamp vertical so popover always fits within viewport
+  if(y + maxH > vh - 8) y = Math.max(8, vh - maxH - 8);
+  y = Math.max(8, y);
   pop.style.left = x + 'px';
   pop.style.top  = y + 'px';
 }
