@@ -33,6 +33,12 @@
     onValue(ref(db, 'pl2/' + key), (snapshot) => {
       if (snapshot.exists()) {
         _lsSet(key, snapshot.val());
+      } else {
+        // No data in Firebase yet — push whatever is in localStorage
+        const existing = localStorage.getItem(key);
+        if (existing !== null) {
+          set(ref(db, 'pl2/' + key), existing);
+        }
       }
     });
   });
