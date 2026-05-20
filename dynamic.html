@@ -555,7 +555,7 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
 .ipp-field{display:flex;flex-direction:column;gap:.3rem;}
 .ipp-label{font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;color:var(--red);font-weight:600;}
 .ipp-input{width:80px;background:#0a0a0a;border:1px solid #333;border-bottom:2px solid var(--red-dark);color:#fff;font-size:.9rem;padding:.4rem .6rem;outline:none;text-align:center;}
-#ieXOverlay{position:fixed;inset:0;z-index:1990;display:none;}
+#ieXOverlay{position:fixed;inset:0;z-index:1990;display:none;pointer-events:auto;}
 #ieXOverlay.open{display:block;}
   nav{padding:.9rem 1.2rem;}.nav-links{display:none;}
   .hero{grid-template-columns:1fr;}.hero-right{height:55vw;}.hero-left{padding:2.5rem 1.5rem;}
@@ -2505,13 +2505,15 @@ openCategoryPage = function(catId){
 function positionIEX(e){
   var pop = document.getElementById('ieXPopover');
   pop.style.visibility = 'hidden';
-  pop.style.display = 'block';
-  var pw = pop.offsetWidth || 360, ph = pop.offsetHeight || 300;
+  pop.style.display = 'flex';
+  pop.style.flexDirection = 'column';
+  pop.style.maxHeight = '90vh';
+  var pw = pop.offsetWidth || 360;
   pop.style.visibility = '';
   var vw = window.innerWidth, vh = window.innerHeight;
-  var x = e.clientX + 16, y = e.clientY + 16;
+  var x = e.clientX + 16;
+  var y = Math.max(8, Math.min(e.clientY + 16, vh * 0.05));
   if(x + pw > vw - 10) x = Math.max(8, e.clientX - pw - 16);
-  if(y + ph > vh - 10) y = Math.max(8, vh - ph - 10);
   pop.style.left = x + 'px';
   pop.style.top  = y + 'px';
 }
@@ -2528,7 +2530,8 @@ function closeIEX(){
   document.getElementById('ieXOverlay').classList.remove('open');
 }
 // Wire overlay click
-document.getElementById('ieXOverlay').addEventListener('click', function(e){ e.stopPropagation(); closeIEX(); });
+document.getElementById('ieXOverlay').addEventListener('click', function(e){ closeIEX(); });
+document.getElementById('ieXPopover').addEventListener('mousedown', function(e){ e.stopPropagation(); });
 // Wire close button via delegation on the popover (catches both static header btn and dynamic foot btns)
 document.getElementById('ieXPopover').addEventListener('click', function(e){
   if(e.target.classList.contains('iex-close') || e.target.classList.contains('iex-cancel')){
