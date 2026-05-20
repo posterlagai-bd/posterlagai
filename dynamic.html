@@ -4,6 +4,7 @@
 <!-- Firebase Compat SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <script>
   firebase.initializeApp({
     apiKey: "AIzaSyD7lTK3LB3F-hfU_XIau16-P4ki6zGGj5o",
@@ -16,7 +17,10 @@
   });
 
   var _fbDb = firebase.database();
-  var _SYNC_KEYS = ['pl2_cats','pl2_posters','pl2_pols','pl2_mags','pl2_revs','pl2_orders','pl2_pr','pl2_nid'];
+  var _fbStorage = firebase.storage();
+  var _SYNC_KEYS = ['pl2_cats','pl2_posters','pl2_pols','pl2_mags','pl2_revs','pl2_orders','pl2_pr','pl2_nid',
+    'pl2_hero1','pl2_hero2','pl2_hero3','pl2_hero4','pl2_hero5','pl2_hero6',
+    'pl2_hero7','pl2_hero8','pl2_hero9','pl2_hero10','pl2_hero11','pl2_hero12'];
   var _lsSet = localStorage.setItem.bind(localStorage);
   var _lsGet = localStorage.getItem.bind(localStorage);
 
@@ -492,7 +496,7 @@ body.edit-mode .hero{padding-top:0;}
 /* editable elements in edit mode */
 body.edit-mode [data-editable]{position:relative;cursor:pointer!important;transition:outline .15s;}
 body.edit-mode [data-editable]:hover{outline:2px dashed rgba(204,17,0,.8);outline-offset:2px;}
-body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);position:absolute;top:-22px;left:0;background:#cc1100;color:#fff;font-family:'Poppins',sans-serif;font-weight:700;font-size:.55rem;letter-spacing:.1em;padding:.18rem .5rem;white-space:nowrap;z-index:8000;pointer-events:none;}
+body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);position:fixed;top:52px;left:50%;transform:translateX(-50%);background:#cc1100;color:#fff;font-family:'Poppins',sans-serif;font-weight:700;font-size:.6rem;letter-spacing:.1em;padding:.25rem .7rem;white-space:nowrap;z-index:9500;pointer-events:none;border-radius:2px;}
 
 /* inline edit popover */
 #iePopover{display:none;position:fixed;z-index:99999;background:#111;border:1px solid #cc1100;border-top:3px solid #cc1100;min-width:320px;max-width:420px;box-shadow:0 12px 60px rgba(0,0,0,.9);border-radius:2px;flex-direction:column;max-height:90vh;overflow:hidden;}
@@ -912,35 +916,6 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
 
 <!-- STOREFRONT -->
 <div id="layerStore">
-
-<!-- ADMIN EDIT BAR (inside layerStore so z-index works) -->
-<div id="adminEditBar">
-  <div class="aeb-left">
-    <span class="aeb-pulse"></span>
-    <span class="aeb-badge">ADMIN</span>
-    <span class="aeb-label">Edit Mode — click anything to edit it live</span>
-  </div>
-  <div class="aeb-right">
-    <button class="aeb-btn primary" onclick="goAdmin()">⚙️ Full Admin Panel</button>
-    <button class="aeb-btn" onclick="goStore()">Exit Edit Mode</button>
-  </div>
-</div>
-
-<!-- INLINE EDIT OVERLAY -->
-<div id="ieOverlay" onclick="closeIEP()"></div>
-
-<!-- INLINE EDIT POPOVER -->
-<div id="iePopover">
-  <div class="iep-header">
-    <div class="iep-title" id="iepTitle">EDIT</div>
-    <button class="iep-close" id="iepCloseBtn" type="button" onclick="closeIEP()">✕</button>
-  </div>
-  <div class="iep-body" id="iepBody"></div>
-  <div class="iep-footer">
-    <button class="iep-cancel" id="iepCancelBtn" type="button" onclick="closeIEP()">Cancel</button>
-    <button class="iep-save" id="iepSaveBtn" type="button">SAVE →</button>
-  </div>
-</div>
 
 <nav>
   <div class="nav-logo" onclick="storeScrollTop()">POSTER <span>LAGAI</span></div>
@@ -2230,23 +2205,41 @@ function fileSingle(input,inputId,previewId){const f=input.files[0];if(f){const 
 function esc(s){return(s||'').replace(/'/g,'&apos;').replace(/"/g,'&quot;');}
 
 // ── HERO PANELS ──
-function uploadHeroPanel(n,input){
-  const f=input.files[0];if(!f)return;
-  const r=new FileReader();
-  r.onload=e=>{
-    const data=e.target.result;
-    ss('pl2_hero'+n,data);
-    applyHeroPanel(n,data);
-    renderHeroAdminPreview(n,data);
-    toast('Panel '+n+' updated!');
-  };
-  r.readAsDataURL(f);
+function uploadHeroPanel(n, input) {
+  if(!window._adminMode) return;
+  var f = input.files[0]; if (!f) return;
+  _uploadHeroPanelFile(n, f, function(url) {
+    ss('pl2_hero' + n, url);
+    applyHeroPanel(n, url);
+    renderHeroAdminPreview(n, url);
+    toast('Panel ' + n + ' updated!');
+  });
+}
+function _uploadHeroPanelFile(n, file, callback) {
+  toast('Uploading image…');
+  var ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  var ref = _fbStorage.ref('hero/panel' + n + '_' + Date.now() + '.' + ext);
+  ref.put(file).then(function() {
+    return ref.getDownloadURL();
+  }).then(function(url) {
+    callback(url);
+  }).catch(function(err) {
+    console.error('Firebase Storage upload failed:', err);
+    if(err && (err.code === 'storage/unauthorized' || err.code === 'storage/unknown')) {
+      toast('Storage not configured — set Firebase Storage rules to allow writes.');
+    } else {
+      toast('Upload failed: ' + (err.message || err.code || 'unknown error'));
+    }
+  });
 }
 function clearHeroPanel(n){
-  localStorage.removeItem('pl2_hero'+n);
-  applyHeroPanel(n,null);
-  renderHeroAdminPreview(n,null);
-  toast('Panel '+n+' cleared');
+  if(!window._adminMode) return;
+  _lsSet('pl2_hero' + n, '');
+  localStorage.removeItem('pl2_hero' + n);
+  _fbDb.ref('pl2/pl2_hero' + n).remove();
+  applyHeroPanel(n, null);
+  renderHeroAdminPreview(n, null);
+  toast('Panel ' + n + ' cleared');
 }
 function applyHeroPanel(n,src){
   const el=document.getElementById('heroPanel'+n);if(!el)return;
@@ -2259,9 +2252,16 @@ function renderHeroAdminPreview(n,src){
   else{prev.innerHTML='<span style="opacity:.3;font-size:.75rem;">No image uploaded</span>';}
 }
 function loadHeroPanels(){
-  [1,2,3,4,5,6,7,8,9,10,11,12].forEach(n=>{
-    const data=localStorage.getItem('pl2_hero'+n);
-    if(data){try{applyHeroPanel(n,data);}catch(e){}}
+  [1,2,3,4,5,6,7,8,9,10,11,12].forEach(function(n){
+    var data = localStorage.getItem('pl2_hero' + n);
+    if(data){ try{ applyHeroPanel(n, data); }catch(e){} }
+    else {
+      // Also try Firebase directly in case localStorage is stale/empty
+      _fbDb.ref('pl2/pl2_hero' + n).once('value', function(snap){
+        var val = snap.val();
+        if(val){ _lsSet('pl2_hero' + n, val); applyHeroPanel(n, val); }
+      });
+    }
   });
 }
 function renderHeroAdmin(){
@@ -2287,14 +2287,14 @@ function renderHeroAdmin(){
 // ── INLINE EDIT SYSTEM ──
 window._adminMode=false;
 
-// Wire up close/cancel buttons once DOM is ready
-// Wire close/cancel - script is at end of body so DOM is ready
-(function(){
+// Wire up close/cancel buttons — deferred so they work after elements are appended at end of body
+function _wireIEPButtons(){
   var closeBtn=document.getElementById('iepCloseBtn');
   var cancelBtn=document.getElementById('iepCancelBtn');
   if(closeBtn) closeBtn.addEventListener('click',function(e){e.stopPropagation();closeIEP();});
   if(cancelBtn) cancelBtn.addEventListener('click',function(e){e.stopPropagation();closeIEP();});
-})();
+}
+setTimeout(_wireIEPButtons, 0);
 
 function enableInlineEdit(){
   document.getElementById('adminEditBar').classList.add('active');
@@ -2328,6 +2328,8 @@ renderStore=function(){
 };
 
 function openIEP(el,e){
+  if(!window._adminMode) return;
+  if(_iepClosing) return;
   document.getElementById('iePopover').style.display='';
   document.getElementById('ieOverlay').style.display='';
   var type=el.dataset.editable;
@@ -2398,6 +2400,7 @@ function openIEP(el,e){
     var existing=localStorage.getItem('pl2_hero'+n);
     title.textContent='HERO PANEL '+n+' IMAGE';
     var pendingDataUrl=existing||null;
+    var pendingFile=null;
     body.innerHTML=(existing
         ?'<img id="iepImgPrev" class="iep-img-preview show" src="'+existing+'">'
         :'<div id="iepImgPrev" style="width:100%;height:70px;background:#0a0a0a;border:1px solid #222;margin-bottom:.6rem;display:flex;align-items:center;justify-content:center;font-size:.6rem;opacity:.3;letter-spacing:.1em;">NO IMAGE</div>')
@@ -2412,6 +2415,8 @@ function openIEP(el,e){
       if(fi) fi.addEventListener('change',function(){
         var f=this.files[0];
         if(!f) return;
+        pendingFile = f;
+        // Show local preview immediately
         var r=new FileReader();
         r.onload=function(ev){
           pendingDataUrl=ev.target.result;
@@ -2425,22 +2430,37 @@ function openIEP(el,e){
         ev.stopPropagation();
         clearHeroPanel(n);
         pendingDataUrl=null;
+        pendingFile=null;
         closeIEP();
       });
     },0);
 
     sb.addEventListener('click',function(ev){
       ev.stopPropagation();
+      ev.stopImmediatePropagation();
       var urlVal=document.getElementById('iepUrlVal');
-      var src=(urlVal&&urlVal.value.trim())||pendingDataUrl;
-      if(src){
-        ss('pl2_hero'+n,src);
-        applyHeroPanel(n,src);
+      var pastedUrl = urlVal && urlVal.value.trim();
+      if(pastedUrl){
+        // URL paste — store directly, syncs via Firebase DB
+        ss('pl2_hero'+n, pastedUrl);
+        applyHeroPanel(n, pastedUrl);
+        renderHeroAdminPreview(n, pastedUrl);
+        closeIEP();
         toast('Panel '+n+' updated!');
+      } else if(pendingFile){
+        // File upload — push to Firebase Storage, store permanent URL
+        var _file = pendingFile;
+        closeIEP();
+        _uploadHeroPanelFile(n, _file, function(url){
+          ss('pl2_hero'+n, url);
+          applyHeroPanel(n, url);
+          renderHeroAdminPreview(n, url);
+          toast('Panel '+n+' updated!');
+        });
       } else {
         toast('No image selected');
+        closeIEP();
       }
-      closeIEP();
     });
   }
 
@@ -2468,7 +2488,9 @@ function positionIEP(e){
   iep.style.top=y+'px';
 }
 
+var _iepClosing = false;
 function closeIEP(){
+  _iepClosing = true;
   var pop = document.getElementById('iePopover');
   var ov = document.getElementById('ieOverlay');
   pop.classList.remove('open');
@@ -2476,6 +2498,7 @@ function closeIEP(){
   pop.style.visibility = '';
   ov.classList.remove('open');
   ov.style.display = 'none';
+  setTimeout(function(){ _iepClosing = false; }, 0);
 }
 window.closeIEP = closeIEP;
 
@@ -2542,15 +2565,19 @@ function openIEX(title, bodyHTML, footHTML){
   document.getElementById('ieXOverlay').classList.add('open');
   pop.classList.add('open');
 }
+var _iexClosing = false;
 function closeIEX(){
+  _iexClosing = true;
   var pop = document.getElementById('ieXPopover');
   var ov = document.getElementById('ieXOverlay');
   pop.classList.remove('open');
   pop.style.display = 'none';
   ov.classList.remove('open');
   ov.style.display = 'none';
+  setTimeout(function(){ _iexClosing = false; }, 0);
 }
 function openIEXDisplay(){
+  if(_iexClosing) return;
   var pop = document.getElementById('ieXPopover');
   var ov = document.getElementById('ieXOverlay');
   pop.style.display = '';
@@ -2568,6 +2595,7 @@ document.getElementById('ieXPopover').addEventListener('click', function(e){
 
 // ── CATEGORY EDIT POPOVER (from storefront card click) ──
 function openCatEditPopover(e, catId){
+  if(!window._adminMode) return;
   e.stopPropagation();
   var cat = cats.find(function(c){ return c.id === catId; });
   if(!cat) return;
@@ -2586,8 +2614,8 @@ function openCatEditPopover(e, catId){
       (cat.img ? '<img src="' + cat.img + '" style="width:100%;max-height:120px;object-fit:cover;border:1px solid #333;">' : '') +
     '</div>';
   var footHTML =
-    '<button class="iex-save" onclick="saveCatFromPopover(' + catId + ')">Save</button>' +
-    '<button class="iex-del" onclick="deleteCatFromPopover(' + catId + ')">Delete Category</button>' +
+    '<button class="iex-save" onclick="saveCatFromPopover(event,' + catId + ')">Save</button>' +
+    '<button class="iex-del" onclick="deleteCatFromPopover(event,' + catId + ')">Delete Category</button>' +
     '<button class="iex-cancel" onclick="closeIEX()">Cancel</button>';
   positionIEX(e);
   openIEX('EDIT CATEGORY', bodyHTML, footHTML);
@@ -2602,7 +2630,9 @@ function iexCatImgFile(input, catId){
   };
   r.readAsDataURL(f);
 }
-function saveCatFromPopover(catId){
+function saveCatFromPopover(ev, catId){
+  if(!window._adminMode) return;
+  ev && ev.stopImmediatePropagation && ev.stopImmediatePropagation();
   var name = document.getElementById('iex-catname').value.trim();
   var img  = document.getElementById('iex-catimg').value.trim();
   if(!name){ alert('Category name required.'); return; }
@@ -2612,25 +2642,28 @@ function saveCatFromPopover(catId){
     if(img) cat.img = img;
   }
   ss('pl2_cats', cats);
+  closeIEX();
   renderCategories();
   renderAdminCats && renderAdminCats();
-  closeIEX();
   toast('Category updated!');
 }
-function deleteCatFromPopover(catId){
+function deleteCatFromPopover(ev, catId){
+  if(!window._adminMode) return;
+  ev && ev.stopImmediatePropagation && ev.stopImmediatePropagation();
   if(!confirm('Delete this category and ALL its posters?')) return;
   cats = cats.filter(function(c){ return c.id !== catId; });
   posters = posters.filter(function(p){ return p.catId !== catId; });
   ss('pl2_cats', cats); ss('pl2_posters', posters);
+  closeIEX();
   renderCategories();
   closeCategoryPage();
-  closeIEX();
   toast('Category deleted.');
 }
 
 // ── POSTER IMAGE EDIT POPOVER ──
 var _iexPosterImgs = []; // working copy of imgs for the poster being edited
 function openPosterImgPopover(e, pid, catId){
+  if(!window._adminMode) return;
   e.stopPropagation();
   var p = posters.find(function(x){ return x.id === pid; });
   if(!p) return;
@@ -2658,7 +2691,7 @@ function renderPosterImgPopover(e, pid, catId){
       '<button class="iex-save" style="padding:.5rem .9rem;" onclick="iexAddPosterUrl(' + pid + ',' + catId + ')">Add</button>' +
     '</div>';
   var footHTML =
-    '<button class="iex-save" onclick="savePosterImgs(' + pid + ',' + catId + ')">Save Images</button>' +
+    '<button class="iex-save" onclick="savePosterImgs(event,' + pid + ',' + catId + ')">Save Images</button>' +
     '<button class="iex-cancel" onclick="closeIEX()">Cancel</button>';
   positionIEX(e || {clientX: window.innerWidth/2, clientY: 200});
   openIEX('EDIT POSTER IMAGES', bodyHTML, footHTML);
@@ -2700,18 +2733,21 @@ function refreshPosterImgThumbs(pid, catId){
     '</div>';
   }).join('') || '<div style="opacity:.35;font-size:.75rem;">No images yet</div>';
 }
-function savePosterImgs(pid, catId){
+function savePosterImgs(ev, pid, catId){
+  if(!window._adminMode) return;
+  ev && ev.stopImmediatePropagation && ev.stopImmediatePropagation();
   if(!_iexPosterImgs.length){ alert('Add at least one image.'); return; }
   var p = posters.find(function(x){ return x.id === pid; });
   if(p){ p.imgs = _iexPosterImgs.slice(); p.img = _iexPosterImgs[0]; }
   ss('pl2_posters', posters);
-  renderPosterList(catId);
   closeIEX();
+  renderPosterList(catId);
   toast('Poster images saved!');
 }
 
 // ── POSTER INFO EDIT POPOVER (name + delete) ──
 function openPosterInfoPopover(e, pid, catId){
+  if(!window._adminMode) return;
   e.stopPropagation();
   var p = posters.find(function(x){ return x.id === pid; });
   if(!p) return;
@@ -2719,29 +2755,33 @@ function openPosterInfoPopover(e, pid, catId){
     '<label class="iex-label">Poster Name</label>' +
     '<input class="iex-input" id="iex-pname" value="' + p.name.replace(/"/g,'&quot;') + '">';
   var footHTML =
-    '<button class="iex-save" onclick="savePosterInfo(' + pid + ',' + catId + ')">Save</button>' +
-    '<button class="iex-del" onclick="deletePosterInline(' + pid + ',' + catId + ')">Delete Poster</button>' +
+    '<button class="iex-save" onclick="savePosterInfo(event,' + pid + ',' + catId + ')">Save</button>' +
+    '<button class="iex-del" onclick="deletePosterInline(event,' + pid + ',' + catId + ')">Delete Poster</button>' +
     '<button class="iex-cancel" onclick="closeIEX()">Cancel</button>';
   positionIEX(e);
   openIEX('EDIT POSTER', bodyHTML, footHTML);
 }
-function savePosterInfo(pid, catId){
+function savePosterInfo(ev, pid, catId){
+  if(!window._adminMode) return;
+  ev && ev.stopImmediatePropagation && ev.stopImmediatePropagation();
   var name = (document.getElementById('iex-pname').value||'').trim();
   if(!name){ alert('Name required.'); return; }
   var p = posters.find(function(x){ return x.id === pid; });
   if(p) p.name = name;
   ss('pl2_posters', posters);
-  renderPosterList(catId);
   closeIEX();
+  renderPosterList(catId);
   toast('Poster updated!');
 }
-function deletePosterInline(pid, catId){
+function deletePosterInline(ev, pid, catId){
+  if(!window._adminMode) return;
+  ev && ev.stopImmediatePropagation && ev.stopImmediatePropagation();
   if(!confirm('Delete this poster?')) return;
   posters = posters.filter(function(p){ return p.id !== pid; });
   ss('pl2_posters', posters);
+  closeIEX();
   renderPosterList(catId);
   renderCategories();
-  closeIEX();
   toast('Poster deleted.');
 }
 
@@ -2862,6 +2902,7 @@ closeCategoryPage = function(){
 
 // ── POLAROID EDIT POPOVER ──
 function openPolEditPopover(e, pid){
+  if(!window._adminMode) return;
   var p = polaroids.find(function(x){ return x.id === pid; });
   if(!p) return;
   var bodyHTML =
@@ -2878,8 +2919,8 @@ function openPolEditPopover(e, pid){
       (p.img ? '<img src="' + p.img + '" style="width:100%;max-height:120px;object-fit:cover;border:1px solid #333;">' : '') +
     '</div>';
   var footHTML =
-    '<button class="iex-save" onclick="savePolFromPopover(' + pid + ')">Save</button>' +
-    '<button class="iex-del" onclick="deletePolFromPopover(' + pid + ')">Delete</button>' +
+    '<button class="iex-save" onclick="savePolFromPopover(event,' + pid + ')">Save</button>' +
+    '<button class="iex-del" onclick="deletePolFromPopover(event,' + pid + ')">Delete</button>' +
     '<button class="iex-cancel" onclick="closeIEX()">Cancel</button>';
   positionIEX(e);
   openIEX('EDIT POLAROID', bodyHTML, footHTML);
@@ -2894,28 +2935,33 @@ function iexPolImgFile(input, pid){
   };
   r.readAsDataURL(f);
 }
-function savePolFromPopover(pid){
+function savePolFromPopover(ev, pid){
+  if(!window._adminMode) return;
+  ev && ev.stopImmediatePropagation && ev.stopImmediatePropagation();
   var name = (document.getElementById('iex-polname').value||'').trim();
   var img  = (document.getElementById('iex-polimg').value||'').trim();
   if(!name){ alert('Name required.'); return; }
   var p = polaroids.find(function(x){ return x.id === pid; });
   if(p){ p.name = name; if(img) p.img = img; }
   ss('pl2_pols', polaroids);
-  renderPolaroidCarousel();
   closeIEX();
+  renderPolaroidCarousel();
   toast('Polaroid updated!');
 }
-function deletePolFromPopover(pid){
+function deletePolFromPopover(ev, pid){
+  if(!window._adminMode) return;
+  ev && ev.stopImmediatePropagation && ev.stopImmediatePropagation();
   if(!confirm('Delete this polaroid?')) return;
   polaroids = polaroids.filter(function(x){ return x.id !== pid; });
   ss('pl2_pols', polaroids);
-  renderPolaroidCarousel();
   closeIEX();
+  renderPolaroidCarousel();
   toast('Polaroid deleted.');
 }
 
 // ── MAGAZINE EDIT POPOVER ──
 function openMagEditPopover(e, mid){
+  if(!window._adminMode) return;
   var m = magazines.find(function(x){ return x.id === mid; });
   if(!m) return;
   var bodyHTML =
@@ -2934,8 +2980,8 @@ function openMagEditPopover(e, mid){
       (m.img ? '<img src="' + m.img + '" style="width:100%;max-height:120px;object-fit:cover;border:1px solid #333;">' : '') +
     '</div>';
   var footHTML =
-    '<button class="iex-save" onclick="saveMagFromPopover(' + mid + ')">Save</button>' +
-    '<button class="iex-del" onclick="deleteMagFromPopover(' + mid + ')">Delete</button>' +
+    '<button class="iex-save" onclick="saveMagFromPopover(event,' + mid + ')">Save</button>' +
+    '<button class="iex-del" onclick="deleteMagFromPopover(event,' + mid + ')">Delete</button>' +
     '<button class="iex-cancel" onclick="closeIEX()">Cancel</button>';
   positionIEX(e);
   openIEX('EDIT MAGAZINE', bodyHTML, footHTML);
@@ -2950,7 +2996,9 @@ function iexMagImgFile(input, mid){
   };
   r.readAsDataURL(f);
 }
-function saveMagFromPopover(mid){
+function saveMagFromPopover(ev, mid){
+  if(!window._adminMode) return;
+  ev && ev.stopImmediatePropagation && ev.stopImmediatePropagation();
   var name = (document.getElementById('iex-magname').value||'').trim();
   var desc = (document.getElementById('iex-magdesc').value||'').trim();
   var img  = (document.getElementById('iex-magimg').value||'').trim();
@@ -2958,16 +3006,18 @@ function saveMagFromPopover(mid){
   var m = magazines.find(function(x){ return x.id === mid; });
   if(m){ m.name = name; m.desc = desc; if(img) m.img = img; }
   ss('pl2_mags', magazines);
-  renderMagazines();
   closeIEX();
+  renderMagazines();
   toast('Magazine updated!');
 }
-function deleteMagFromPopover(mid){
+function deleteMagFromPopover(ev, mid){
+  if(!window._adminMode) return;
+  ev && ev.stopImmediatePropagation && ev.stopImmediatePropagation();
   if(!confirm('Delete this magazine?')) return;
   magazines = magazines.filter(function(x){ return x.id !== mid; });
   ss('pl2_mags', magazines);
-  renderMagazines();
   closeIEX();
+  renderMagazines();
   toast('Magazine deleted.');
 }
 
@@ -2984,5 +3034,33 @@ function deleteMagFromPopover(mid){
   updateCartCount();
 })();
 </script>
+
+<!-- ADMIN EDIT BAR — outside all layers so position:fixed works correctly -->
+<div id="adminEditBar">
+  <div class="aeb-left">
+    <span class="aeb-pulse"></span>
+    <span class="aeb-badge">ADMIN</span>
+    <span class="aeb-label">Edit Mode — click anything to edit it live</span>
+  </div>
+  <div class="aeb-right">
+    <button class="aeb-btn primary" onclick="goAdmin()">⚙️ Full Admin Panel</button>
+    <button class="aeb-btn" onclick="goStore()">Exit Edit Mode</button>
+  </div>
+</div>
+
+<!-- INLINE EDIT OVERLAY + POPOVER — outside all layers so position:fixed + z-index work -->
+<div id="ieOverlay" onclick="closeIEP()"></div>
+<div id="iePopover">
+  <div class="iep-header">
+    <div class="iep-title" id="iepTitle">EDIT</div>
+    <button class="iep-close" id="iepCloseBtn" type="button" onclick="closeIEP()">✕</button>
+  </div>
+  <div class="iep-body" id="iepBody"></div>
+  <div class="iep-footer">
+    <button class="iep-cancel" id="iepCancelBtn" type="button" onclick="closeIEP()">Cancel</button>
+    <button class="iep-save" id="iepSaveBtn" type="button">SAVE →</button>
+  </div>
+</div>
+
 </body>
 </html>
