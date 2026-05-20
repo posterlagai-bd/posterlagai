@@ -1,6 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD7lTK3LB3F-hfU_XIau16-P4ki6zGGj5o",
+    authDomain: "dynamic-poster-lagai.firebaseapp.com",
+    databaseURL: "https://dynamic-poster-lagai-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "dynamic-poster-lagai",
+    storageBucket: "dynamic-poster-lagai.firebasestorage.app",
+    messagingSenderId: "114769113111",
+    appId: "1:114769113111:web:4c6c0346ffb8abb01fec52"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const SYNC_KEYS = ['pl2_cats','pl2_posters','pl2_pols','pl2_mags','pl2_revs','pl2_orders','pl2_pr','pl2_nid'];
+
+  const _lsSet = localStorage.setItem.bind(localStorage);
+
+  localStorage.setItem = function(key, value) {
+    _lsSet(key, value);
+    if (SYNC_KEYS.includes(key)) {
+      set(ref(db, 'pl2/' + key), value);
+    }
+  };
+
+  SYNC_KEYS.forEach(key => {
+    onValue(ref(db, 'pl2/' + key), (snapshot) => {
+      if (snapshot.exists()) {
+        _lsSet(key, snapshot.val());
+      }
+    });
+  });
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Poster Lagai</title>
