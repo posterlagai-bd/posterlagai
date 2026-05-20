@@ -2328,6 +2328,8 @@ renderStore=function(){
 };
 
 function openIEP(el,e){
+  document.getElementById('iePopover').style.display='';
+  document.getElementById('ieOverlay').style.display='';
   var type=el.dataset.editable;
   var key=el.dataset.editKey;
   var title=document.getElementById('iepTitle');
@@ -2464,8 +2466,12 @@ function positionIEP(e){
 }
 
 function closeIEP(){
-  document.getElementById('iePopover').classList.remove('open');
-  document.getElementById('ieOverlay').classList.remove('open');
+  var pop = document.getElementById('iePopover');
+  var ov = document.getElementById('ieOverlay');
+  pop.classList.remove('open');
+  pop.style.display = 'none';
+  ov.classList.remove('open');
+  ov.style.display = 'none';
 }
 window.closeIEP = closeIEP;
 
