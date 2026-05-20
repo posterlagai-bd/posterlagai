@@ -529,7 +529,7 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
 .ie-mini-btn{background:rgba(204,17,0,.15);border:1px solid var(--red);color:var(--red);font-size:.72rem;padding:.2rem .5rem;cursor:pointer;border-radius:2px;flex-shrink:0;}
 
 /* Inline Popover for cat/poster edits */
-#ieXPopover{position:fixed;z-index:2000;background:#1a1a1a;border:1px solid #333;border-top:3px solid var(--red);min-width:320px;max-width:420px;box-shadow:0 12px 40px rgba(0,0,0,.7);display:none;flex-direction:column;max-height:90vh;}
+#ieXPopover{position:fixed;z-index:9999;background:#1a1a1a;border:1px solid #333;border-top:3px solid var(--red);min-width:320px;max-width:420px;box-shadow:0 12px 40px rgba(0,0,0,.7);display:none;flex-direction:column;max-height:90vh;}
 #ieXPopover.open{display:flex;}
 .iex-header{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.2rem;border-bottom:1px solid #2e2e2e;}
 .iex-title{font-family:'Poppins',sans-serif;font-weight:800;font-size:.75rem;letter-spacing:.2em;color:var(--red);}
@@ -555,7 +555,7 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
 .ipp-field{display:flex;flex-direction:column;gap:.3rem;}
 .ipp-label{font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;color:var(--red);font-weight:600;}
 .ipp-input{width:80px;background:#0a0a0a;border:1px solid #333;border-bottom:2px solid var(--red-dark);color:#fff;font-size:.9rem;padding:.4rem .6rem;outline:none;text-align:center;}
-#ieXOverlay{position:fixed;inset:0;z-index:1990;display:none;pointer-events:auto;}
+#ieXOverlay{position:fixed;inset:0;z-index:1990;display:none;}
 #ieXOverlay.open{display:block;}
   nav{padding:.9rem 1.2rem;}.nav-links{display:none;}
   .hero{grid-template-columns:1fr;}.hero-right{height:55vw;}.hero-left{padding:2.5rem 1.5rem;}
@@ -2518,6 +2518,7 @@ function positionIEX(e){
   pop.style.top  = y + 'px';
 }
 function openIEX(title, bodyHTML, footHTML){
+  openIEXDisplay();
   var pop = document.getElementById('ieXPopover');
   pop.querySelector('.iex-title').textContent = title;
   pop.querySelector('.iex-body').innerHTML = bodyHTML;
@@ -2526,8 +2527,18 @@ function openIEX(title, bodyHTML, footHTML){
   pop.classList.add('open');
 }
 function closeIEX(){
-  document.getElementById('ieXPopover').classList.remove('open');
-  document.getElementById('ieXOverlay').classList.remove('open');
+  var pop = document.getElementById('ieXPopover');
+  var ov = document.getElementById('ieXOverlay');
+  pop.classList.remove('open');
+  pop.style.display = 'none';
+  ov.classList.remove('open');
+  ov.style.display = 'none';
+}
+function openIEXDisplay(){
+  var pop = document.getElementById('ieXPopover');
+  var ov = document.getElementById('ieXOverlay');
+  pop.style.display = '';
+  ov.style.display = '';
 }
 // Wire overlay click
 document.getElementById('ieXOverlay').addEventListener('click', function(e){ closeIEX(); });
