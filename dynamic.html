@@ -20,7 +20,8 @@
   var _fbStorage = firebase.storage();
   var _SYNC_KEYS = ['pl2_cats','pl2_posters','pl2_pols','pl2_mags','pl2_revs','pl2_orders','pl2_pr','pl2_nid',
     'pl2_hero1','pl2_hero2','pl2_hero3','pl2_hero4','pl2_hero5','pl2_hero6',
-    'pl2_hero7','pl2_hero8','pl2_hero9','pl2_hero10','pl2_hero11','pl2_hero12'];
+    'pl2_hero7','pl2_hero8','pl2_hero9','pl2_hero10','pl2_hero11','pl2_hero12',
+    'pl2_hero13','pl2_hero14','pl2_hero15','pl2_hero16','pl2_hero17','pl2_hero18'];
   var _lsSet = localStorage.setItem.bind(localStorage);
   var _lsGet = localStorage.getItem.bind(localStorage);
 
@@ -116,32 +117,45 @@ nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-co
 @keyframes artDrift{to{transform:translateX(-120px);}}
 .art-panel{position:absolute;box-shadow:0 16px 40px rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.1);overflow:hidden;}
 .art-panel img{width:100%;height:100%;object-fit:cover;display:block;}
-/* 12 panels — scattered collage */
-.art-panel-one  {width:22%;height:34%;left:4%;top:5%;  transform:rotate(-7deg); background:linear-gradient(160deg,rgba(255,255,255,.15),rgba(204,17,0,.7)); animation:fp1 8s  ease-in-out infinite;}
-.art-panel-two  {width:26%;height:42%;left:29%;top:3%; transform:rotate(4deg);  background:linear-gradient(145deg,#f3f0e8 0 8%,#262626 8% 72%,#cc1100 72%); animation:fp2 9s  ease-in-out infinite;}
-.art-panel-three{width:22%;height:30%;right:5%;top:6%; transform:rotate(-5deg);background:linear-gradient(160deg,#cc1100,#1b1b1b 46%,#f3f0e8 47%); animation:fp3 7s  ease-in-out infinite;}
-.art-panel-four {width:24%;height:36%;left:3%;top:42%; transform:rotate(6deg); background:linear-gradient(135deg,#1a0000,#cc1100 60%,#0d0d0d);            animation:fp4 10s ease-in-out infinite;}
-.art-panel-five {width:22%;height:28%;left:29%;top:48%;transform:rotate(-4deg);background:linear-gradient(150deg,#f3f0e8,#cc1100 50%,#1a1a1a);            animation:fp5 8.5s ease-in-out infinite;}
-.art-panel-six  {width:26%;height:38%;right:3%;top:38%;transform:rotate(8deg); background:linear-gradient(160deg,#0a0a0a,rgba(204,17,0,.8));                 animation:fp6 9.5s ease-in-out infinite;}
-.art-panel-seven{width:20%;height:26%;left:14%;top:74%;transform:rotate(-6deg);background:linear-gradient(140deg,#cc1100,#f3f0e8 50%,#cc1100);             animation:fp7 7.5s ease-in-out infinite;}
-.art-panel-eight{width:24%;height:32%;left:38%;top:70%;transform:rotate(5deg); background:linear-gradient(155deg,#1b1b1b,#cc1100 55%,#f3f0e8);             animation:fp8 11s  ease-in-out infinite;}
-.art-panel-nine {width:22%;height:28%;right:4%;top:75%;transform:rotate(-3deg);background:linear-gradient(165deg,#f3f0e8,#1a0000 45%,#cc1100);             animation:fp9 8.2s ease-in-out infinite;}
-.art-panel-ten  {width:18%;height:22%;left:2%;top:78%; transform:rotate(9deg); background:linear-gradient(130deg,#cc1100,#0a0a0a);                          animation:fp10 9.8s ease-in-out infinite;}
-.art-panel-eleven{width:20%;height:26%;left:56%;top:8%;transform:rotate(-9deg);background:linear-gradient(145deg,#0d0d0d,#cc1100 60%,#f3f0e8);             animation:fp11 7.8s ease-in-out infinite;}
-.art-panel-twelve{width:18%;height:24%;right:6%;top:55%;transform:rotate(11deg);background:linear-gradient(150deg,#f3f0e8,#cc1100);                         animation:fp12 10.5s ease-in-out infinite;}
-.art-ring{position:absolute;width:90px;height:90px;right:8%;bottom:8%;border-radius:50%;border:14px solid rgba(204,17,0,.9);box-shadow:0 0 40px rgba(204,17,0,.35);z-index:20;}
-@keyframes fp1 {50%{transform:translateY(-14px) rotate(-3deg);}}
-@keyframes fp2 {50%{transform:translateY(16px)  rotate(8deg);}}
-@keyframes fp3 {50%{transform:translateY(-10px) rotate(-9deg);}}
-@keyframes fp4 {50%{transform:translateY(12px)  rotate(10deg);}}
-@keyframes fp5 {50%{transform:translateY(-16px) rotate(-8deg);}}
-@keyframes fp6 {50%{transform:translateY(14px)  rotate(4deg);}}
-@keyframes fp7 {50%{transform:translateY(-11px) rotate(-10deg);}}
-@keyframes fp8 {50%{transform:translateY(18px)  rotate(9deg);}}
-@keyframes fp9 {50%{transform:translateY(-13px) rotate(-6deg);}}
-@keyframes fp10{50%{transform:translateY(10px)  rotate(13deg);}}
-@keyframes fp11{50%{transform:translateY(-15px) rotate(-13deg);}}
-@keyframes fp12{50%{transform:translateY(12px)  rotate(15deg);}}
+/* 18 panels — A4 ratio (height≈width×1.414 of container width, capped for screen) */
+.art-panel-one   {width:18%;aspect-ratio:1/1.414;left:4%;  top:3%;  transform:rotate(-7deg); background:linear-gradient(160deg,rgba(255,255,255,.15),rgba(204,17,0,.7)); animation:fp1  8s  ease-in-out infinite;}
+.art-panel-two   {width:20%;aspect-ratio:1/1.414;left:25%; top:2%;  transform:rotate(4deg);  background:linear-gradient(145deg,#f3f0e8 0 8%,#262626 8% 72%,#cc1100 72%); animation:fp2  9s  ease-in-out infinite;}
+.art-panel-three {width:18%;aspect-ratio:1/1.414;right:4%; top:4%;  transform:rotate(-5deg); background:linear-gradient(160deg,#cc1100,#1b1b1b 46%,#f3f0e8 47%); animation:fp3  7s  ease-in-out infinite;}
+.art-panel-four  {width:19%;aspect-ratio:1/1.414;left:2%;  top:38%; transform:rotate(6deg);  background:linear-gradient(135deg,#1a0000,#cc1100 60%,#0d0d0d);  animation:fp4  10s ease-in-out infinite;}
+.art-panel-five  {width:18%;aspect-ratio:1/1.414;left:24%; top:42%; transform:rotate(-4deg); background:linear-gradient(150deg,#f3f0e8,#cc1100 50%,#1a1a1a);  animation:fp5  8.5s ease-in-out infinite;}
+.art-panel-six   {width:20%;aspect-ratio:1/1.414;right:2%; top:34%; transform:rotate(8deg);  background:linear-gradient(160deg,#0a0a0a,rgba(204,17,0,.8));    animation:fp6  9.5s ease-in-out infinite;}
+.art-panel-seven {width:17%;aspect-ratio:1/1.414;left:10%; top:72%; transform:rotate(-6deg); background:linear-gradient(140deg,#cc1100,#f3f0e8 50%,#cc1100);  animation:fp7  7.5s ease-in-out infinite;}
+.art-panel-eight {width:19%;aspect-ratio:1/1.414;left:32%; top:68%; transform:rotate(5deg);  background:linear-gradient(155deg,#1b1b1b,#cc1100 55%,#f3f0e8);  animation:fp8  11s  ease-in-out infinite;}
+.art-panel-nine  {width:18%;aspect-ratio:1/1.414;right:3%; top:70%; transform:rotate(-3deg); background:linear-gradient(165deg,#f3f0e8,#1a0000 45%,#cc1100);  animation:fp9  8.2s ease-in-out infinite;}
+.art-panel-ten   {width:15%;aspect-ratio:1/1.414;left:1%;  top:74%; transform:rotate(9deg);  background:linear-gradient(130deg,#cc1100,#0a0a0a);             animation:fp10 9.8s ease-in-out infinite;}
+.art-panel-eleven{width:17%;aspect-ratio:1/1.414;left:48%; top:6%;  transform:rotate(-9deg); background:linear-gradient(145deg,#0d0d0d,#cc1100 60%,#f3f0e8); animation:fp11 7.8s ease-in-out infinite;}
+.art-panel-twelve{width:15%;aspect-ratio:1/1.414;right:5%; top:50%; transform:rotate(11deg); background:linear-gradient(150deg,#f3f0e8,#cc1100);             animation:fp12 10.5s ease-in-out infinite;}
+/* panels 13-18 — extra scattered */
+.art-panel-thirteen{width:16%;aspect-ratio:1/1.414;left:46%;top:48%;transform:rotate(-8deg); background:linear-gradient(155deg,#cc1100,#0a0a0a 50%,#f3f0e8); animation:fp13 9.2s ease-in-out infinite;}
+.art-panel-fourteen{width:18%;aspect-ratio:1/1.414;right:2%;top:16%;transform:rotate(6deg);  background:linear-gradient(140deg,#f3f0e8,#cc1100 60%,#1a1a1a); animation:fp14 8.7s ease-in-out infinite;}
+.art-panel-fifteen {width:17%;aspect-ratio:1/1.414;left:62%;top:70%;transform:rotate(-5deg); background:linear-gradient(160deg,#1a0000,#f3f0e8 50%,#cc1100); animation:fp15 10.2s ease-in-out infinite;}
+.art-panel-sixteen {width:15%;aspect-ratio:1/1.414;left:2%; top:22%;transform:rotate(10deg); background:linear-gradient(145deg,#cc1100,#262626 55%,#f3f0e8); animation:fp16 7.3s ease-in-out infinite;}
+.art-panel-seventeen{width:16%;aspect-ratio:1/1.414;left:22%;top:24%;transform:rotate(-3deg);background:linear-gradient(150deg,#f3f0e8,#0a0a0a 45%,#cc1100);animation:fp17 9.6s ease-in-out infinite;}
+.art-panel-eighteen{width:17%;aspect-ratio:1/1.414;left:56%;top:28%;transform:rotate(7deg);  background:linear-gradient(135deg,#0d0d0d,#cc1100 50%,#f3f0e8); animation:fp18 8.1s ease-in-out infinite;}
+.art-ring{position:absolute;width:70px;height:70px;right:6%;bottom:6%;border-radius:50%;border:12px solid rgba(204,17,0,.9);box-shadow:0 0 40px rgba(204,17,0,.35);z-index:20;}
+@keyframes fp1  {50%{transform:translateY(-12px) rotate(-3deg);}}
+@keyframes fp2  {50%{transform:translateY(14px)  rotate(8deg);}}
+@keyframes fp3  {50%{transform:translateY(-9px)  rotate(-9deg);}}
+@keyframes fp4  {50%{transform:translateY(11px)  rotate(10deg);}}
+@keyframes fp5  {50%{transform:translateY(-14px) rotate(-8deg);}}
+@keyframes fp6  {50%{transform:translateY(12px)  rotate(4deg);}}
+@keyframes fp7  {50%{transform:translateY(-10px) rotate(-10deg);}}
+@keyframes fp8  {50%{transform:translateY(16px)  rotate(9deg);}}
+@keyframes fp9  {50%{transform:translateY(-11px) rotate(-6deg);}}
+@keyframes fp10 {50%{transform:translateY(9px)   rotate(13deg);}}
+@keyframes fp11 {50%{transform:translateY(-13px) rotate(-13deg);}}
+@keyframes fp12 {50%{transform:translateY(10px)  rotate(15deg);}}
+@keyframes fp13 {50%{transform:translateY(-12px) rotate(-4deg);}}
+@keyframes fp14 {50%{transform:translateY(13px)  rotate(10deg);}}
+@keyframes fp15 {50%{transform:translateY(-10px) rotate(-9deg);}}
+@keyframes fp16 {50%{transform:translateY(11px)  rotate(14deg);}}
+@keyframes fp17 {50%{transform:translateY(-14px) rotate(-6deg);}}
+@keyframes fp18 {50%{transform:translateY(12px)  rotate(11deg);}}
 
 /* ── TICKER ── */
 .ticker{background:var(--red);padding:.65rem 0;overflow:hidden;white-space:nowrap;}
@@ -499,7 +513,7 @@ body.edit-mode .art-panel{pointer-events:none!important;}/* disable direct click
 #heroPanelPickerOverlay{display:none;position:absolute;inset:0;z-index:200;background:rgba(0,0,0,.65);flex-direction:column;align-items:center;justify-content:center;gap:.6rem;padding:1.5rem;}
 #heroPanelPickerOverlay.show{display:flex;}
 .hppo-title{font-family:'Poppins',sans-serif;font-weight:800;font-size:.75rem;letter-spacing:.2em;color:#fff;text-transform:uppercase;margin-bottom:.4rem;opacity:.8;}
-.hppo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;width:100%;max-width:340px;}
+.hppo-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:.4rem;width:100%;max-width:420px;}
 .hppo-btn{font-family:'Poppins',sans-serif;font-weight:800;font-size:.7rem;letter-spacing:.1em;background:rgba(204,17,0,.85);color:#fff;border:2px solid rgba(255,255,255,.3);padding:.55rem .3rem;cursor:pointer;border-radius:3px;text-align:center;transition:all .15s;line-height:1.3;}
 .hppo-btn:hover{background:#cc1100;border-color:#fff;transform:scale(1.07);}
 .hppo-btn.has-img{background:rgba(0,180,60,.75);border-color:rgba(255,255,255,.4);}
@@ -574,6 +588,7 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
 .ipp-input{width:80px;background:#0a0a0a;border:1px solid #333;border-bottom:2px solid var(--red-dark);color:#fff;font-size:.9rem;padding:.4rem .6rem;outline:none;text-align:center;}
 #ieXOverlay{position:fixed;inset:0;z-index:1990;display:none;}
 #ieXOverlay.open{display:block;}
+@media(max-width:768px){
   nav{padding:.9rem 1.2rem;}.nav-links{display:none;}
   .hero{grid-template-columns:1fr;}.hero-right{height:55vw;}.hero-left{padding:2.5rem 1.5rem;}
   .sec,.about-sec,.combo-sec{padding:3rem 1.5rem;}footer{padding:2rem 1.5rem;flex-direction:column;text-align:center;}
@@ -975,7 +990,13 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
       <div class="art-panel art-panel-nine"   id="heroPanel9"  data-editable="hero-panel" data-panel="9"  data-edit-label="🖼 Edit Panel 9"></div>
       <div class="art-panel art-panel-ten"    id="heroPanel10" data-editable="hero-panel" data-panel="10" data-edit-label="🖼 Edit Panel 10"></div>
       <div class="art-panel art-panel-eleven" id="heroPanel11" data-editable="hero-panel" data-panel="11" data-edit-label="🖼 Edit Panel 11"></div>
-      <div class="art-panel art-panel-twelve" id="heroPanel12" data-editable="hero-panel" data-panel="12" data-edit-label="🖼 Edit Panel 12"></div>
+      <div class="art-panel art-panel-twelve"    id="heroPanel12" data-editable="hero-panel" data-panel="12" data-edit-label="🖼 Edit Panel 12"></div>
+      <div class="art-panel art-panel-thirteen"  id="heroPanel13" data-editable="hero-panel" data-panel="13" data-edit-label="🖼 Edit Panel 13"></div>
+      <div class="art-panel art-panel-fourteen"  id="heroPanel14" data-editable="hero-panel" data-panel="14" data-edit-label="🖼 Edit Panel 14"></div>
+      <div class="art-panel art-panel-fifteen"   id="heroPanel15" data-editable="hero-panel" data-panel="15" data-edit-label="🖼 Edit Panel 15"></div>
+      <div class="art-panel art-panel-sixteen"   id="heroPanel16" data-editable="hero-panel" data-panel="16" data-edit-label="🖼 Edit Panel 16"></div>
+      <div class="art-panel art-panel-seventeen" id="heroPanel17" data-editable="hero-panel" data-panel="17" data-edit-label="🖼 Edit Panel 17"></div>
+      <div class="art-panel art-panel-eighteen"  id="heroPanel18" data-editable="hero-panel" data-panel="18" data-edit-label="🖼 Edit Panel 18"></div>
       <div class="art-ring"></div>
     </div>
   </div>
@@ -2257,7 +2278,7 @@ function renderHeroAdminPreview(n,src){
   else{prev.innerHTML='<span style="opacity:.3;font-size:.75rem;">No image uploaded</span>';}
 }
 function loadHeroPanels(){
-  [1,2,3,4,5,6,7,8,9,10,11,12].forEach(function(n){
+  [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].forEach(function(n){
     var data = localStorage.getItem('pl2_hero' + n);
     if(data){ try{ applyHeroPanel(n, data); }catch(e){} }
     else {
@@ -2270,8 +2291,8 @@ function loadHeroPanels(){
   });
 }
 function renderHeroAdmin(){
-  const labels=['Top Left','Top Center-Left','Top Right','Mid Left','Mid Center','Mid Right','Lower Left','Lower Center','Lower Right','Bottom Far-Left','Top Far-Right','Mid Far-Right'];
-  document.getElementById('heroPanelGrid').innerHTML=[1,2,3,4,5,6,7,8,9,10,11,12].map(n=>{
+  const labels=['Top Left','Top Ctr-L','Top Right','Mid Left','Mid Ctr','Mid Right','Lower Left','Lower Ctr','Lower Right','Bot Left','Top Far-R','Mid Far-R','Ctr Mid-L','Right Top','Bot Right','Left Mid','Ctr Upper','Right Mid'];
+  document.getElementById('heroPanelGrid').innerHTML=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].map(n=>{
     const data=localStorage.getItem('pl2_hero'+n);
     const preview=data?`<img src="${data}" style="width:100%;height:100%;object-fit:cover;">`:`<span style="opacity:.3;font-size:.75rem;">No image uploaded</span>`;
     return`<div class="a-card">
@@ -2299,8 +2320,8 @@ function openHeroPanelPicker(e){
   if(ov.classList.contains('show')){ closeHeroPanelPicker(); return; }
   // Build the 12-panel grid
   var grid = document.getElementById('hppoGrid');
-  var labels=['Top Left','Top Ctr-L','Top Right','Mid Left','Mid Ctr','Mid Right','Low Left','Low Ctr','Low Right','Bot Left','Top Far-R','Mid Far-R'];
-  grid.innerHTML = [1,2,3,4,5,6,7,8,9,10,11,12].map(function(n){
+  var labels=['Top Left','Top Ctr-L','Top Right','Mid Left','Mid Ctr','Mid Right','Low Left','Low Ctr','Low Right','Bot Left','Top Far-R','Mid Far-R','Ctr Mid-L','Right Top','Bot Right','Left Mid','Ctr Upper','Right Mid'];
+  grid.innerHTML = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].map(function(n){
     var hasImg = !!localStorage.getItem('pl2_hero'+n);
     return '<button class="hppo-btn'+(hasImg?' has-img':'')+'" onclick="event.stopPropagation();closeHeroPanelPicker();openHeroPanelEdit('+n+',event)">'+
       'Panel '+n+'<br><span style="font-size:.55rem;opacity:.7;font-weight:600;">'+labels[n-1]+'</span>'+
