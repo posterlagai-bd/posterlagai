@@ -923,11 +923,11 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
 <div id="iePopover">
   <div class="iep-header">
     <div class="iep-title" id="iepTitle">EDIT</div>
-    <button class="iep-close" id="iepCloseBtn" type="button">✕</button>
+    <button class="iep-close" id="iepCloseBtn" type="button" onclick="closeIEP()">✕</button>
   </div>
   <div class="iep-body" id="iepBody"></div>
   <div class="iep-footer">
-    <button class="iep-cancel" id="iepCancelBtn" type="button">Cancel</button>
+    <button class="iep-cancel" id="iepCancelBtn" type="button" onclick="closeIEP()">Cancel</button>
     <button class="iep-save" id="iepSaveBtn" type="button">SAVE →</button>
   </div>
 </div>
