@@ -2457,6 +2457,7 @@ function closeIEP(){
   document.getElementById('iePopover').classList.remove('open');
   document.getElementById('ieOverlay').classList.remove('open');
 }
+window.closeIEP = closeIEP;
 
 function restoreInlineEdits(){
   document.querySelectorAll('[data-editable="text"]').forEach(function(el){
