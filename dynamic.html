@@ -1418,7 +1418,7 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
 <div id="ieXPopover">
   <div class="iex-header">
     <div class="iex-title"></div>
-    <button class="iex-close">✕</button>
+    <button class="iex-close" onclick="closeIEX()">✕</button>
   </div>
   <div class="iex-body"></div>
   <div class="iex-foot"></div>
@@ -2531,11 +2531,10 @@ function closeIEX(){
 }
 // Wire overlay click
 document.getElementById('ieXOverlay').addEventListener('click', function(e){ closeIEX(); });
-document.getElementById('ieXPopover').addEventListener('mousedown', function(e){ e.stopPropagation(); });
-// Wire close button via delegation on the popover (catches both static header btn and dynamic foot btns)
+// Wire close button via delegation on the popover
 document.getElementById('ieXPopover').addEventListener('click', function(e){
-  if(e.target.classList.contains('iex-close') || e.target.classList.contains('iex-cancel')){
-    e.stopPropagation();
+  var t = e.target;
+  if(t.classList.contains('iex-close') || t.classList.contains('iex-cancel')){
     closeIEX();
   }
 });
