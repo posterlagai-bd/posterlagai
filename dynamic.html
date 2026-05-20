@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-  const firebaseConfig = {
+<!-- Firebase Compat SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+  firebase.initializeApp({
     apiKey: "AIzaSyD7lTK3LB3F-hfU_XIau16-P4ki6zGGj5o",
     authDomain: "dynamic-poster-lagai.firebaseapp.com",
     databaseURL: "https://dynamic-poster-lagai-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -13,33 +13,43 @@
     storageBucket: "dynamic-poster-lagai.firebasestorage.app",
     messagingSenderId: "114769113111",
     appId: "1:114769113111:web:4c6c0346ffb8abb01fec52"
-  };
+  });
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+  var _fbDb = firebase.database();
+  var _SYNC_KEYS = ['pl2_cats','pl2_posters','pl2_pols','pl2_mags','pl2_revs','pl2_orders','pl2_pr','pl2_nid'];
+  var _lsSet = localStorage.setItem.bind(localStorage);
+  var _lsGet = localStorage.getItem.bind(localStorage);
 
-  const SYNC_KEYS = ['pl2_cats','pl2_posters','pl2_pols','pl2_mags','pl2_revs','pl2_orders','pl2_pr','pl2_nid'];
-
-  const _lsSet = localStorage.setItem.bind(localStorage);
-
+  // Override localStorage.setItem to also write to Firebase
   localStorage.setItem = function(key, value) {
     _lsSet(key, value);
-    if (SYNC_KEYS.includes(key)) {
-      set(ref(db, 'pl2/' + key), value);
+    if (_SYNC_KEYS.includes(key)) {
+      _fbDb.ref('pl2/' + key).set(value);
     }
   };
 
-  SYNC_KEYS.forEach(key => {
-    onValue(ref(db, 'pl2/' + key), (snapshot) => {
+  // Listen for Firebase changes and sync to localStorage
+  // On first load if DB is empty, push whatever is in localStorage (default data) up to Firebase
+  var _fbReady = false;
+  var _fbReadyQueue = [];
+  var _fbReadyCount = 0;
+
+  _SYNC_KEYS.forEach(function(key) {
+    _fbDb.ref('pl2/' + key).once('value', function(snapshot) {
       if (snapshot.exists()) {
+        // Firebase has data — overwrite localStorage with it
         _lsSet(key, snapshot.val());
       } else {
-        // No data in Firebase yet — push whatever is in localStorage
-        const existing = localStorage.getItem(key);
+        // Firebase is empty for this key — push localStorage default up
+        var existing = _lsGet(key);
         if (existing !== null) {
-          set(ref(db, 'pl2/' + key), existing);
+          _fbDb.ref('pl2/' + key).set(existing);
         }
       }
+      // After initial read, set up live listener
+      _fbDb.ref('pl2/' + key).on('value', function(snap) {
+        if (snap.exists()) _lsSet(key, snap.val());
+      });
     });
   });
 </script>
