@@ -1,76 +1,59 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Firebase Compat SDKs — loaded sequentially to guarantee firebase is defined before use -->
+<!-- Firebase Compat SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <script>
-  function _loadScript(src, cb) {
-    var s = document.createElement('script');
-    s.src = src;
-    s.onload = cb;
-    s.onerror = cb; // still continue even if one fails, site works offline via localStorage
-    document.head.appendChild(s);
-  }
+  firebase.initializeApp({
+    apiKey: "AIzaSyD7lTK3LB3F-hfU_XIau16-P4ki6zGGj5o",
+    authDomain: "dynamic-poster-lagai.firebaseapp.com",
+    databaseURL: "https://dynamic-poster-lagai-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "dynamic-poster-lagai",
+    storageBucket: "dynamic-poster-lagai.firebasestorage.app",
+    messagingSenderId: "114769113111",
+    appId: "1:114769113111:web:4c6c0346ffb8abb01fec52"
+  });
 
-  var _fbDb = null;
-  var _fbStorage = null;
+  var _fbDb = firebase.database();
+  var _fbStorage = firebase.storage();
   var _SYNC_KEYS = ['pl2_cats','pl2_posters','pl2_pols','pl2_mags','pl2_revs','pl2_orders','pl2_pr','pl2_nid',
     'pl2_hero1','pl2_hero2','pl2_hero3','pl2_hero4','pl2_hero5','pl2_hero6',
     'pl2_hero7','pl2_hero8','pl2_hero9','pl2_hero10','pl2_hero11','pl2_hero12',
     'pl2_hero13','pl2_hero14','pl2_hero15','pl2_hero16','pl2_hero17','pl2_hero18'];
   var _lsSet = localStorage.setItem.bind(localStorage);
   var _lsGet = localStorage.getItem.bind(localStorage);
-  var _clearingHeroPanels = {};
 
-  function _initFirebase() {
-    if (typeof firebase === 'undefined') return; // CDN failed, run on localStorage only
-    try {
-      firebase.initializeApp({
-        apiKey: "AIzaSyD7lTK3LB3F-hfU_XIau16-P4ki6zGGj5o",
-        authDomain: "dynamic-poster-lagai.firebaseapp.com",
-        databaseURL: "https://dynamic-poster-lagai-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "dynamic-poster-lagai",
-        storageBucket: "dynamic-poster-lagai.firebasestorage.app",
-        messagingSenderId: "114769113111",
-        appId: "1:114769113111:web:4c6c0346ffb8abb01fec52"
-      });
-
-      _fbDb = firebase.database();
-      _fbStorage = firebase.storage();
-
-      // Override localStorage.setItem to also write to Firebase
-      localStorage.setItem = function(key, value) {
-        _lsSet(key, value);
-        if (_SYNC_KEYS.includes(key)) {
-          _fbDb.ref('pl2/' + key).set(value);
-        }
-      };
-
-      // Listen for Firebase changes and sync to localStorage
-      _SYNC_KEYS.forEach(function(key) {
-        _fbDb.ref('pl2/' + key).once('value', function(snapshot) {
-          if (snapshot.exists()) {
-            _lsSet(key, snapshot.val());
-          } else {
-            var existing = _lsGet(key);
-            if (existing !== null) {
-              _fbDb.ref('pl2/' + key).set(existing);
-            }
-          }
-          _fbDb.ref('pl2/' + key).on('value', function(snap) {
-            if (snap.exists() && !_clearingHeroPanels[key]) _lsSet(key, snap.val());
-          });
-        });
-      });
-    } catch(e) {
-      console.warn('Firebase init failed, running on localStorage only.', e);
+  // Override localStorage.setItem to also write to Firebase
+  localStorage.setItem = function(key, value) {
+    _lsSet(key, value);
+    if (_SYNC_KEYS.includes(key)) {
+      _fbDb.ref('pl2/' + key).set(value);
     }
-  }
+  };
 
-  // Load all 3 scripts sequentially, then init
-  _loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js', function() {
-    _loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js', function() {
-      _loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js', function() {
-        _initFirebase();
+  // Listen for Firebase changes and sync to localStorage
+  // On first load if DB is empty, push whatever is in localStorage (default data) up to Firebase
+  var _fbReady = false;
+  var _fbReadyQueue = [];
+  var _fbReadyCount = 0;
+
+  _SYNC_KEYS.forEach(function(key) {
+    _fbDb.ref('pl2/' + key).once('value', function(snapshot) {
+      if (snapshot.exists()) {
+        // Firebase has data — overwrite localStorage with it
+        _lsSet(key, snapshot.val());
+      } else {
+        // Firebase is empty for this key — push localStorage default up
+        var existing = _lsGet(key);
+        if (existing !== null) {
+          _fbDb.ref('pl2/' + key).set(existing);
+        }
+      }
+      // After initial read, set up live listener
+      _fbDb.ref('pl2/' + key).on('value', function(snap) {
+        if (snap.exists()) _lsSet(key, snap.val());
       });
     });
   });
@@ -600,9 +583,9 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
 .iep-img-preview{width:100%;max-height:120px;object-fit:contain;margin-bottom:.6rem;border:1px solid #333;display:none;}
 .iep-img-preview.show{display:block;}
 .iep-drop{border:2px dashed #cc1100;padding:1.2rem;text-align:center;cursor:pointer;position:relative;background:rgba(204,17,0,.05);border-radius:3px;margin-bottom:.8rem;}
-.iep-drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2;}
-.iep-drop-text{font-family:'Poppins',sans-serif;font-weight:700;font-size:.72rem;color:#cc1100;pointer-events:none;}
-.iep-drop-sub{font-size:.6rem;opacity:.4;margin-top:.2rem;pointer-events:none;}
+.iep-drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.iep-drop-text{font-family:'Poppins',sans-serif;font-weight:700;font-size:.72rem;color:#cc1100;}
+.iep-drop-sub{font-size:.6rem;opacity:.4;margin-top:.2rem;}
 .iep-or{text-align:center;font-size:.6rem;opacity:.3;margin:.4rem 0;letter-spacing:.15em;}
 .iep-footer{display:flex;gap:.5rem;padding:.75rem 1rem;border-top:1px solid #1a1a1a;background:#0d0d0d;}
 .iep-save{flex:1;font-family:'Poppins',sans-serif;font-weight:800;font-size:.72rem;letter-spacing:.12em;color:#000;background:#cc1100;border:none;padding:.7rem;cursor:pointer;border-radius:1px;}
@@ -628,8 +611,7 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
 .iex-label{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--red);display:block;margin-bottom:.35rem;font-weight:600;}
 .iex-input{width:100%;background:#0a0a0a;border:1px solid #2e2e2e;border-bottom:2px solid var(--red-dark);color:#fff;font-size:.9rem;padding:.6rem .9rem;outline:none;margin-bottom:.8rem;}
 .iex-drop{border:2px dashed #cc1100;padding:1.2rem;text-align:center;position:relative;cursor:pointer;background:rgba(204,17,0,.06);margin-bottom:.8rem;border-radius:4px;}
-.iex-drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2;}
-.iex-drop>div,.iex-drop>span{pointer-events:none;}
+.iex-drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
 .iex-img-grid{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.8rem;}
 .iex-img-thumb{position:relative;width:70px;height:90px;border:1px solid #333;overflow:hidden;}
 .iex-img-thumb img{width:100%;height:100%;object-fit:cover;}
@@ -1823,11 +1805,11 @@ function renderAdminCats(){
         <!-- PRIMARY: Upload box -->
         <div style="border:2px dashed #cc1100;padding:2rem;text-align:center;position:relative;cursor:pointer;background:rgba(204,17,0,.06);margin-bottom:.8rem;border-radius:4px;" 
           ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDropMultiPoster(event,${cat.id})">
-          <input type="file" accept="image/*,application/pdf,.psd,.ai,.png,.jpg,.jpeg,.webp,.gif,.svg" multiple style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2;" onchange="fileMultiPoster(this,${cat.id})">
-          <div style="font-size:2rem;margin-bottom:.5rem;pointer-events:none;">📁</div>
-          <div style="font-family:'Poppins',sans-serif;font-weight:800;font-size:1rem;color:var(--red);pointer-events:none;">CLICK TO UPLOAD YOUR DESIGNS</div>
-          <div style="font-size:.7rem;opacity:.5;margin-top:.4rem;pointer-events:none;">PNG · JPG · WEBP · SVG · GIF — Select multiple at once</div>
-          <div style="font-size:.65rem;opacity:.3;margin-top:.2rem;pointer-events:none;">or drag & drop files here</div>
+          <input type="file" accept="image/*,application/pdf,.psd,.ai,.png,.jpg,.jpeg,.webp,.gif,.svg" multiple style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="fileMultiPoster(this,${cat.id})">
+          <div style="font-size:2rem;margin-bottom:.5rem;">📁</div>
+          <div style="font-family:'Poppins',sans-serif;font-weight:800;font-size:1rem;color:var(--red);">CLICK TO UPLOAD YOUR DESIGNS</div>
+          <div style="font-size:.7rem;opacity:.5;margin-top:.4rem;">PNG · JPG · WEBP · SVG · GIF — Select multiple at once</div>
+          <div style="font-size:.65rem;opacity:.3;margin-top:.2rem;">or drag & drop files here</div>
         </div>
         <!-- SECONDARY: URL fallback -->
         <div class="a-field"><label style="opacity:.4;">Or paste image URLs (one per line)</label>
@@ -1897,14 +1879,14 @@ function deletePoster(pid){
 // multi image upload for poster form
 function fileMultiPoster(input,catId){
   const files=Array.from(input.files);if(!files.length)return;
-  const results=new Array(files.length).fill(null);let done=0;
+  const results=[];let done=0;
   files.forEach((f,i)=>{
     const r=new FileReader();
     r.onload=e=>{results[i]=e.target.result;done++;
       if(done===files.length){
         const existing=document.getElementById('pi_'+catId).value.trim();
         const lines=existing?existing.split('\n').map(s=>s.trim()).filter(Boolean):[];
-        const merged=[...lines,...results.filter(Boolean)];
+        const merged=[...lines,...results];
         document.getElementById('pi_'+catId).value=merged.join('\n');
         renderPosterPreviews(catId,merged);
         toast(files.length+' image(s) added!');
@@ -2097,19 +2079,9 @@ function uploadHeroPanel(n, input) {
 }
 function clearHeroPanel(n){
   if(!window._adminMode) return;
-  // Mark key as clearing so the Firebase .on('value') listener won't re-populate localStorage
-  var key = 'pl2_hero' + n;
-  _clearingHeroPanels[key] = true;
-  // Use the raw _lsSet bypass (not the overridden setItem) to remove locally
-  // without triggering the setItem→Firebase sync that would write '' to Firebase
-  try { localStorage.removeItem(key); } catch(e) {}
-  if(_fbDb){
-    _fbDb.ref('pl2/' + key).remove().then(function(){
-      delete _clearingHeroPanels[key];
-    }).catch(function(){ delete _clearingHeroPanels[key]; });
-  } else {
-    delete _clearingHeroPanels[key];
-  }
+  _lsSet('pl2_hero' + n, '');
+  localStorage.removeItem('pl2_hero' + n);
+  _fbDb.ref('pl2/pl2_hero' + n).remove();
   applyHeroPanel(n, null);
   renderHeroAdminPreview(n, null);
   toast('Panel ' + n + ' cleared');
@@ -2233,10 +2205,7 @@ renderStore=function(){
 function openIEP(el,e){
   if(!window._adminMode) return;
   if(_iepClosing) return;
-  // Hide before revealing so positionIEP can measure without a visible flash
-  var _pop = document.getElementById('iePopover');
-  _pop.style.visibility = 'hidden';
-  _pop.style.display = '';
+  document.getElementById('iePopover').style.display='';
   document.getElementById('ieOverlay').style.display='';
   var type=el.dataset.editable;
   var key=el.dataset.editKey;
@@ -2316,28 +2285,30 @@ function openIEP(el,e){
       +'<input class="iep-input" id="iepUrlVal" placeholder="https://..." value="">'
       +(existing?'<br><button type="button" id="iepClearPanel" style="font-size:.6rem;color:#ff4444;background:none;border:none;cursor:pointer;margin-top:.5rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700;">&times; Remove image</button>':'');
 
-    var fi=document.getElementById('iepFileInput');
-    if(fi) fi.addEventListener('change',function(){
-      var f=this.files[0];
-      if(!f) return;
-      pendingFile = f;
-      // Show local preview immediately
-      var r=new FileReader();
-      r.onload=function(ev){
-        pendingDataUrl=ev.target.result;
-        var prev=document.getElementById('iepImgPrev');
-        if(prev){prev.src=pendingDataUrl;prev.className='iep-img-preview show';}
-      };
-      r.readAsDataURL(f);
-    });
-    var clrBtn=document.getElementById('iepClearPanel');
-    if(clrBtn) clrBtn.addEventListener('click',function(ev){
-      ev.stopPropagation();
-      clearHeroPanel(n);
-      pendingDataUrl=null;
-      pendingFile=null;
-      closeIEP();
-    });
+    setTimeout(function(){
+      var fi=document.getElementById('iepFileInput');
+      if(fi) fi.addEventListener('change',function(){
+        var f=this.files[0];
+        if(!f) return;
+        pendingFile = f;
+        // Show local preview immediately
+        var r=new FileReader();
+        r.onload=function(ev){
+          pendingDataUrl=ev.target.result;
+          var prev=document.getElementById('iepImgPrev');
+          if(prev){prev.src=pendingDataUrl;prev.className='iep-img-preview show';}
+        };
+        r.readAsDataURL(f);
+      });
+      var clrBtn=document.getElementById('iepClearPanel');
+      if(clrBtn) clrBtn.addEventListener('click',function(ev){
+        ev.stopPropagation();
+        clearHeroPanel(n);
+        pendingDataUrl=null;
+        pendingFile=null;
+        closeIEP();
+      });
+    },0);
 
     sb.addEventListener('click',function(ev){
       ev.stopPropagation();
@@ -2367,20 +2338,19 @@ function openIEP(el,e){
 
   positionIEP(e);
   document.getElementById('iePopover').classList.add('open');
-  document.getElementById('iePopover').style.visibility = '';
   document.getElementById('ieOverlay').classList.add('open');
   setTimeout(function(){var ta=document.getElementById('iepVal');if(ta)ta.focus();},60);
 }
 
 function positionIEP(e){
   var iep=document.getElementById('iePopover');
-  // visibility:hidden already set by caller; just ensure flex layout for measurement
+  iep.style.visibility='hidden';
   iep.style.display='flex';
   iep.style.flexDirection='column';
   var maxH=Math.floor(window.innerHeight*0.9);
   iep.style.maxHeight=maxH+'px';
   var pw=iep.offsetWidth||340;
-  // visibility stays hidden — caller clears it after classList.add('open')
+  iep.style.visibility='';
   var vw=window.innerWidth, vh=window.innerHeight;
   var x=e.clientX+16, y=e.clientY+16;
   if(x+pw>vw-10) x=Math.max(8,e.clientX-pw-16);
@@ -2600,13 +2570,13 @@ function renderPosterImgPopover(e, pid, catId){
 }
 function iexAddPosterFiles(input, pid, catId){
   var files = Array.from(input.files); if(!files.length) return;
-  var results = new Array(files.length).fill(null); var done = 0;
+  var results = new Array(files.length); var done = 0;
   files.forEach(function(f, i){
     var r = new FileReader();
     r.onload = function(ev){
       results[i] = ev.target.result; done++;
       if(done === files.length){
-        _iexPosterImgs = _iexPosterImgs.concat(results.filter(Boolean));
+        _iexPosterImgs = _iexPosterImgs.concat(results);
         refreshPosterImgThumbs(pid, catId);
         toast(files.length + ' image(s) added!');
       }
@@ -2699,13 +2669,13 @@ function openAddPosterInline(){
 }
 function ailFileUpload(input){
   var files = Array.from(input.files); if(!files.length) return;
-  var results = new Array(files.length).fill(null); var done = 0;
+  var results = new Array(files.length); var done = 0;
   files.forEach(function(f, i){
     var r = new FileReader();
     r.onload = function(ev){
       results[i] = ev.target.result; done++;
       if(done === files.length){
-        _ailImgs = _ailImgs.concat(results.filter(Boolean));
+        _ailImgs = _ailImgs.concat(results);
         renderAilPreview();
         toast(files.length + ' image(s) ready!');
       }
@@ -2934,7 +2904,7 @@ function deleteMagFromPopover(ev, mid){
   renderStore();
   loadHeroPanels();
   updateCartCount();
-  // renderSnakeSection(); // REMOVED: Featured Prints section disabled to lighten page
+  renderSnakeSection();
 })();
 
 // ── FEATURED SNAKE SECTION ──
