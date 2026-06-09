@@ -1294,8 +1294,28 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
         <div class="field"><label>Notes (optional)</label><input id="custNotes" type="text" placeholder="Gift wrap, specific request…"></div>
       </div>
       <div class="modal-footer">
-        <button class="submit-btn" onclick="submitOrder()">CONFIRM ORDER</button>
-        <p style="margin-top:.75rem;font-size:.63rem;opacity:.28;text-align:center;">We confirm via WhatsApp or call within 24h · Cash on delivery available</p>
+        <!-- Step 1: Pay button -->
+        <div id="bkashStep1">
+          <button class="submit-btn" onclick="showBkashPayStep()">PROCEED TO PAYMENT →</button>
+          <p style="margin-top:.75rem;font-size:.63rem;opacity:.28;text-align:center;">Delivery charge paid via bKash · Items cash on delivery</p>
+        </div>
+        <!-- Step 2: bKash payment instructions + TrxID -->
+        <div id="bkashStep2" style="display:none;">
+          <div style="background:#1a0a0a;border:1px solid #e11d48;border-radius:8px;padding:1rem;margin-bottom:1rem;text-align:center;">
+            <div style="font-size:.62rem;color:#aaa;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem;">Send Delivery Charge via bKash</div>
+            <div style="font-size:1.6rem;font-family:'Poppins',sans-serif;font-weight:800;color:#e11d48;" id="bkashAmountDisplay">৳0</div>
+            <div style="font-size:.72rem;color:#aaa;margin:.3rem 0;">to bKash number</div>
+            <div style="font-size:1.25rem;font-family:'Poppins',sans-serif;font-weight:800;color:#fff;letter-spacing:.05em;">01568794913</div>
+            <div style="font-size:.62rem;color:#aaa;margin-top:.4rem;">Send Money → type the number → enter amount</div>
+          </div>
+          <div class="field" style="margin-bottom:.8rem;">
+            <label>bKash Transaction ID <span style="color:var(--red);font-size:.75rem;">★ Required</span></label>
+            <input id="bkashTrxId" type="text" placeholder="e.g. AB12CD3456" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
+            <div id="trxVerifyMsg" style="font-size:.68rem;margin-top:.4rem;min-height:1rem;"></div>
+          </div>
+          <button class="submit-btn" onclick="submitOrder()" id="confirmOrderBtn">✓ CONFIRM ORDER</button>
+          <button onclick="hideBkashPayStep()" style="width:100%;margin-top:.5rem;background:none;border:1px solid #333;color:#aaa;padding:.6rem;cursor:pointer;font-size:.7rem;">← Back</button>
+        </div>
       </div>
     </div>
     <div class="success-state" id="successState">
@@ -2292,6 +2312,40 @@ async function sendTelegramDocument(dataUrl,filename,caption){
   }catch(e){console.error('TG doc error',e);}
 }
 
+// ── BKASH CONFIG ──
+const BKASH_NUMBER = '01568794913'; // ← REPLACE with your bKash number
+const VERIFY_SERVER = 'https://posterlagai-verifier.onrender.com'; // ← REPLACE after deploying server
+
+function showBkashPayStep(){
+  const name=document.getElementById('custName').value.trim();
+  const phone=document.getElementById('custPhone').value.trim();
+  const address=document.getElementById('custAddress').value.trim();
+  if(!name||!phone||!address){alert('Please fill in Name, Phone and Address first.');return;}
+  if(!/^[0-9+\-\s]{7,15}$/.test(phone)){alert('Please enter a valid phone number.');return;}
+  document.getElementById('bkashAmountDisplay').textContent='৳'+deliveryCharge;
+  document.getElementById('bkashStep1').style.display='none';
+  document.getElementById('bkashStep2').style.display='block';
+  document.getElementById('bkashTrxId').focus();
+}
+
+function hideBkashPayStep(){
+  document.getElementById('bkashStep2').style.display='none';
+  document.getElementById('bkashStep1').style.display='block';
+}
+
+async function verifyTrxId(trxId){
+  const msg=document.getElementById('trxVerifyMsg');
+  msg.style.color='#aaa';
+  msg.textContent='Verifying…';
+  try{
+    const r=await fetch(`${VERIFY_SERVER}/verify?trxid=${encodeURIComponent(trxId)}&amount=${deliveryCharge}`);
+    const d=await r.json();
+    return d;
+  }catch(e){
+    return {valid:false,reason:'Could not reach verification server. Please try again.'};
+  }
+}
+
 async function submitOrder(){
   const name=document.getElementById('custName').value.trim();
   const phone=document.getElementById('custPhone').value.trim();
@@ -2299,6 +2353,24 @@ async function submitOrder(){
   const email=document.getElementById('custEmail')?document.getElementById('custEmail').value.trim():'';
   if(!name||!phone||!address){alert('Please fill in Name, Phone and Address.');return;}
   if(!/^[0-9+\-\s]{7,15}$/.test(phone)){alert('Please enter a valid phone number.');return;}
+
+  // ── VERIFY BKASH TRXID ──
+  const trxId=(document.getElementById('bkashTrxId')?.value||'').trim().toUpperCase();
+  const trxMsg=document.getElementById('trxVerifyMsg');
+  if(!trxId){
+    if(trxMsg){trxMsg.style.color='#e11d48';trxMsg.textContent='Please enter your bKash Transaction ID.';}
+    document.getElementById('bkashTrxId')?.focus();
+    return;
+  }
+  const confirmBtn=document.getElementById('confirmOrderBtn');
+  if(confirmBtn){confirmBtn.disabled=true;confirmBtn.textContent='Verifying payment…';}
+  const verifyResult=await verifyTrxId(trxId);
+  if(!verifyResult.valid){
+    if(trxMsg){trxMsg.style.color='#e11d48';trxMsg.textContent='❌ '+verifyResult.reason;}
+    if(confirmBtn){confirmBtn.disabled=false;confirmBtn.textContent='✓ CONFIRM ORDER';}
+    return;
+  }
+  if(trxMsg){trxMsg.style.color='#22c55e';trxMsg.textContent='✓ Payment verified!';}
   const zone=document.querySelector('.delivery-opt.active .delivery-opt-name')?.textContent||'Inside Dhaka';
   const mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const now=new Date();
@@ -2306,6 +2378,7 @@ async function submitOrder(){
     customer:{name,phone,email,address,notes:document.getElementById('custNotes').value.trim()},
     items:JSON.parse(JSON.stringify(cart)),
     delivery:{zone,charge:deliveryCharge},
+    bkashTrxId:trxId,
     itemsTotal:cartSubtotal(),grandTotal:cartSubtotal()+deliveryCharge,status:'New'};
   // Strip raw file data before saving to storage (files already sent to Telegram)
   // But keep a small thumbnail for admin display
@@ -2333,6 +2406,7 @@ async function submitOrder(){
     return clean;
   }));
   orders.unshift(orderToSave);ss('pl2_orders',orders);
+  if(confirmBtn){confirmBtn.disabled=false;confirmBtn.textContent='✓ CONFIRM ORDER';}
 
   // ── SYNC TO ORDER MANAGER (index.html / Firestore) ──
   if(typeof window.__pushToOrderManager === 'function'){
