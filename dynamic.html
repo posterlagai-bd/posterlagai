@@ -1470,7 +1470,7 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
 
       <!-- PRICES -->
       <div class="admin-page" id="page-prices">
-        <div class="admin-header"><div><div class="admin-page-title">PRICES</div></div><button class="btn-red" onclick="savePrices()" style="position:relative;z-index:10;cursor:pointer;">Save All</button></div>
+        <div class="admin-header"><div><div class="admin-page-title">PRICES</div></div><button class="btn-red" id="savePricesBtn" onclick="savePricesWithFeedback()" style="position:relative;z-index:10;cursor:pointer;">Save All</button></div>
         <div class="a-card"><div class="a-card-title">Poster Sizes</div>
           <table class="price-table"><thead><tr><th>Size</th><th>Price (৳)</th></tr></thead><tbody>
             <tr><td>A5</td><td><input class="price-input" id="pr-a5" type="number" min="0"></td></tr>
@@ -2734,6 +2734,19 @@ function savePrices(){
   ss('pl2_pr',PRICES);
   document.getElementById('storeComboPrice').textContent=PRICES.combo;
   renderMagazines();toast('Prices saved!');
+}
+function savePricesWithFeedback(){
+  savePrices();
+  var btn=document.getElementById('savePricesBtn');
+  if(!btn) return;
+  btn.textContent='✓ Saved!';
+  btn.style.background='#22c55e';
+  btn.style.borderColor='#22c55e';
+  setTimeout(function(){
+    btn.textContent='Save All';
+    btn.style.background='';
+    btn.style.borderColor='';
+  }, 2000);
 }
 
 // REVIEWS ADMIN
