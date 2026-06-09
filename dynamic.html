@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Poster Lagai</title>
 <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAEpElEQVR42tXXa4hd1RkG4GedM5PxkguajEk0IYNRajpNreKtattQWwiIl6i1rUpvFiz+UUM0Qa0JKF76wyK2KmiDDcHLqKgoams0Ni1itWilVJhgHasxMZgYkxhN5pyzP3+sdfAwxGQMxtIFm73POmvv9/1u77cW/88jqAX1/xV4aj8vzkRqXxpgGyyYGXyrY77eue4LBx/IAPUyd8AqXrue2MzyYPZei3O5j++YG/MWK/sJNL5C/J4dLW4LxpbcSOWqt5/3BLxt7ZkvsGYbNwR961j+/QI+gRhDE637iBbXtkmO/F7aQ8uPXsZWxDHEE2xbksFbiFOJIeJ+WufQuI6tQV95tze4PJgRHGy0nuhw34SneHMK8QiNk7OlsZrWHwqhGjGTeJA4i8ZcIrg4OP1+3llFvMHrr/LXng7DRuv6U84nemi+TZxH9FEF8UdiCdXNVIgzqPqoDqG6h01D7Cheax5InJ+JndH5/V0R6IImV30zAzQQ04l7iDXEuByGuDrnQFxETCH6idOIt4n9qaYTx7O9j1jHizEazVhcFrzM45MyUPM7xENUBxcii6jmEAdmD8V8YipxL3Ex1TVUM4kf0VpNPMNzwTfaFdLG6tpZ/FN284TbOWEDVY3aiVhFOk7Opv1Jd+I2Yj3ewUTSMgyRFmIarUHqh7P0SC78+NPvRxuvtgvh6Z7NlsOoVVSPYp+cgJ7HK5iP35KeJK0jTcKaTMSPMZvYiG0MFfAxneA7JdBekNhwMicMsPLr1F8jDkUPunEa8RiOxG/wPsbiu8R7+AmGsS5752uwJOfTqLtc2sS8YFGwop/mubQiZ3O8TDydhSd2dCTlV4kLqM4m/kzz2bx+IDL32mh1oKvcf3kL8RSvb2D4DqpNxM+JuwuR4XJ/ghibwWN9mQvicap5NP/J6mByGtHYdqcD3z6rKN45xH8KSHe57igg/yhVsZRqsJTi94pnfk2zlon8PehaPEohasvwrCtoJap9qd4gLiP+VsrxTOKS4nrEL6jGE8cSvcTPiIdpLiW28mhR19ouk/BTDmDDRD4M0gyMw2RciS1ZneIWXFVK81jSw8QC7IcPcSsuzFUzvTPJd0egPT6YzEYZONZgUSHQi+NIk/FTzMJzuJ20PFusP1dNjMd0XkrEyhEyvFMChWUaQ2MK6xUNmIV9cQFpCCvK+vMwiLUlGefRqpdwbMTh6ONfMGcEVtdnmf4Dag/Qmsq7Kbs4erAgWxObSVvwQ1xetGEf0qG4mq7AXTQ+LiqKf48I767HykJuLbf25l6wfQHNU2hOoflI6YqDJdt/Vbrhn9j8X5Y/y/NPE9OoFvJRcIjRtuNOLRjmmrml7NrZXicWE/fRHE/1aq6ARm8m9bv2Fi64aX4u18GO0k6jCkHbVd28cDMrPqCq092kNkyaRv+lTNxCHEWrG1NJbzJugPocPvoLC7dx0HaOSLQGqKesK3s+kmxKMON9ll5f9gFo3EAzOL6w7y4b0kmRe5M9OjsEqajXyKv9/0mvsOJGYm0ue1/KaSmoDRSgrvz73OCgkVvwnanf3jg3pM8Rwb1GZLfHsrlzD+uxt8+Qn3d8AmpgLn/liySzAAAAAElFTkSuQmCC"/>
 <!-- Firebase Compat SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -134,6 +131,9 @@
     }
   };
 </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poster Lagai</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--black:#0a0a0a;--red:#cc1100;--red-dark:#8b0000;--red-light:#ff2200;--white:#fff;--grey:#1a1a1a;--grey-mid:#2a2a2a;--border:#2e2e2e;--wa:#25D366;--wa-dark:#128C7E;}
@@ -447,22 +447,6 @@ nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-co
 .combo-inner{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;}
 .combo-art{position:relative;aspect-ratio:.75;max-width:380px;margin:0 auto;}
 .combo-wall{position:absolute;inset:0;background:linear-gradient(160deg,#1a0000,#0d0d0d);border:1px solid #2a2a2a;overflow:hidden;display:flex;align-items:center;justify-content:center;}
-/* ── COMBO SLIDESHOW ── */
-.combo-slide-track{position:absolute;inset:0;display:flex;transition:transform .5s cubic-bezier(.4,0,.2,1);}
-.combo-slide{min-width:100%;height:100%;flex-shrink:0;overflow:hidden;}
-.combo-slide img{width:100%;height:100%;object-fit:cover;display:block;}
-.combo-slide-dots{position:absolute;bottom:.6rem;left:50%;transform:translateX(-50%);display:flex;gap:.35rem;z-index:5;}
-.combo-slide-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .2s;border:none;padding:0;}
-.combo-slide-dot.active{background:var(--red);transform:scale(1.3);}
-.combo-slide-arr{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.15);color:#fff;font-size:1rem;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;transition:all .15s;}
-.combo-slide-arr:hover{background:var(--red);border-color:var(--red);}
-.combo-slide-arr.prev{left:.5rem;}
-.combo-slide-arr.next{right:.5rem;}
-/* Admin combo images grid */
-.combo-img-grid{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.8rem;}
-.combo-img-thumb{position:relative;width:80px;height:100px;border:1px solid #333;overflow:hidden;background:#111;}
-.combo-img-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
-.combo-img-del{position:absolute;top:2px;right:2px;background:rgba(204,17,0,.9);color:#fff;border:none;cursor:pointer;font-size:.6rem;width:16px;height:16px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;line-height:1;}
 .combo-poster-label{font-family:'Poppins',sans-serif;font-weight:800;font-size:3.5rem;color:rgba(204,17,0,.25);line-height:1;text-align:center;}
 .combo-badge{position:absolute;top:-14px;right:2rem;background:var(--red);color:#fff;font-family:'Poppins',sans-serif;font-weight:800;font-size:.72rem;letter-spacing:.15em;padding:.4rem 1rem;}
 .combo-title{font-family:'Poppins',sans-serif;font-weight:800;font-size:clamp(2.5rem,4vw,4rem);line-height:1;letter-spacing:-.02em;margin-bottom:1rem;}
@@ -1412,7 +1396,7 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
 
     <!-- Drop zone — full width -->
     <div class="custom-drop-zone" id="cpDrop" style="margin-bottom:1.2rem;"
-      ondragover="cpDragOver(event)" ondragleave="cpDragLeave(event)" ondrop="cpDrop(event)">
+      ondragover="cpDragOver(event)" ondragleave="cpDragLeave(event)" ondrop="cpOnDrop(event)">
       <input type="file" accept="image/*,.pdf,.psd,.ai" multiple id="cpFileInput" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="cpFileChosen(this)">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.3;margin-bottom:.6rem;display:block;margin-left:auto;margin-right:auto;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
       <div class="cdz-title">Click or drag files here</div>
@@ -1556,7 +1540,6 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
     <div class="combo-art">
       <div class="combo-wall" id="comboWall"><div class="combo-poster-label">FULL<br>WALL</div></div>
       <div class="combo-badge">BEST VALUE</div>
-      <button id="comboEditBtn" style="display:none;position:absolute;bottom:.6rem;left:50%;transform:translateX(-50%);background:rgba(204,17,0,.92);color:#fff;font-family:'Poppins',sans-serif;font-weight:700;font-size:.6rem;letter-spacing:.1em;padding:.35rem .85rem;border:none;cursor:pointer;z-index:20;white-space:nowrap;border-radius:2px;" onclick="openComboImgEditor(event)">🖼️ Edit Slides</button>
     </div>
     <div>
       <h2 class="combo-title" data-editable="text" data-edit-key="combo_title" data-edit-label="✏ Edit Combo Title">THE WALL<br><span>COMBO</span> PACK</h2>
@@ -1926,18 +1909,14 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
             <tr><td>Magazine 16pg</td><td><input class="price-input" id="pr-m16" type="number" min="0"></td></tr>
             <tr><td>Combo Pack (start)</td><td><input class="price-input" id="pr-combo" type="number" min="0"></td></tr>
             <tr><td colspan="2" style="padding-top:1rem;">
-              <div style="font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin-bottom:.8rem;font-weight:600;">Combo Section — Slideshow Images</div>
-              <div style="font-size:.58rem;opacity:.4;margin-bottom:.8rem;">Upload multiple images for a slideshow, or leave empty to auto-use your poster images. Order = slide order.</div>
-              <!-- Upload zone -->
-              <div style="border:2px dashed #cc1100;padding:1.2rem;text-align:center;position:relative;cursor:pointer;background:rgba(204,17,0,.06);border-radius:4px;margin-bottom:.8rem;">
-                <input type="file" accept="image/*" multiple style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="addComboImgs(this)">
-                <div style="font-size:1.4rem;">📁</div>
-                <div style="font-family:'Poppins',sans-serif;font-weight:700;font-size:.75rem;color:var(--red);">Click to upload slide images</div>
-                <div style="font-size:.6rem;opacity:.4;margin-top:.2rem;">PNG · JPG · WEBP · Select multiple at once</div>
+              <div style="font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin-bottom:.5rem;font-weight:600;">Combo Section Image</div>
+              <div style="display:flex;gap:.6rem;align-items:center;margin-bottom:.4rem;">
+                <label style="font-family:'Poppins',sans-serif;font-weight:700;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#000;background:#cc1100;border:none;padding:.45rem 1rem;cursor:pointer;display:inline-block;">📁 Upload<input type="file" accept="image/*" style="display:none;" onchange="(function(f){if(!f)return;var r=new FileReader();r.onload=function(e){var ci=document.getElementById('pr-combo-img');if(ci)ci.value=e.target.result;var cp=document.getElementById('pr-combo-img-prev');if(cp)cp.innerHTML='<img src=\''+e.target.result+'\' style=\'width:100%;max-height:120px;object-fit:cover;border:1px solid #333;margin-top:.5rem;\'>';};r.readAsDataURL(f);})(this.files[0])"></label>
+                <span style="font-size:.65rem;opacity:.4;">or paste URL:</span>
               </div>
-              <!-- Thumbnails grid -->
-              <div class="combo-img-grid" id="comboImgGrid"></div>
-              <div style="font-size:.58rem;opacity:.3;margin-top:.6rem;">Click ✕ on a thumbnail to remove it. Images auto-save when you click Save All.</div>
+              <input id="pr-combo-img" type="text" placeholder="https://... or leave blank for auto-collage" style="width:100%;background:#0d0d0d;border:1px solid #2e2e2e;border-bottom:1px solid var(--red-dark);color:#fff;font-size:.75rem;padding:.45rem .7rem;outline:none;" oninput="var cp=document.getElementById('pr-combo-img-prev');if(cp)cp.innerHTML=this.value?'<img src=\''+this.value+'\' style=\'width:100%;max-height:120px;object-fit:cover;border:1px solid #333;margin-top:.5rem;\'>':''">
+              <div id="pr-combo-img-prev"></div>
+              <div style="font-size:.58rem;opacity:.3;margin-top:.4rem;">Leave blank to auto-show a collage of your real poster images.</div>
             </td></tr>
             <tr><td>Delivery — Inside Dhaka</td><td><input class="price-input" id="pr-dd" type="number" min="0"></td></tr>
             <tr><td>Delivery — Outside Dhaka</td><td><input class="price-input" id="pr-do" type="number" min="0"></td></tr>
@@ -2042,7 +2021,7 @@ const DEF_REVS=[
   {id:401,name:'Tahmid R.',product:'A3 Retro Poster',stars:5,text:'Absolutely stunning quality. Colours popped exactly like the preview.',date:'12 May 2024'},
   {id:402,name:'Nusrat J.',product:'Polaroid Pack x10',stars:5,text:'Got 10 polaroids for my room — ৳5 each is insane value.',date:'8 May 2024'},
 ];
-const DEF_PR={a5:20,a4:35,a3:65,pol:5,m8:350,m12:550,m16:700,combo:499,dd:70,dout:130,combo_img:'',combo_imgs:[]};
+const DEF_PR={a5:20,a4:35,a3:65,pol:5,m8:350,m12:550,m16:700,combo:499,dd:70,dout:130,combo_img:''};
 
 let cats=gs('pl2_cats',DEF_CATS);
 let posters=gs('pl2_posters',DEF_POSTERS);
@@ -2462,7 +2441,7 @@ function cpFileChosen(input){
     r.readAsDataURL(f);
   });
 }
-function cpDrop(e){
+function cpOnDrop(e){
   e.preventDefault();e.currentTarget.classList.remove('drag-active');
   const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
   if(!files.length)return;
@@ -2587,7 +2566,7 @@ function cpAddToCart(){
 }
 
 // ── POLAROID ──
-// cpolFiles already declared above
+var cpolFiles=[];// [{name,dataUrl}]
 function cpolFilesChosen(input){
   const files=Array.from(input.files);if(!files.length)return;
   input.value=''; // reset so same photo can be picked again
@@ -2842,9 +2821,6 @@ function showBkashPayStep(){
   const address=document.getElementById('custAddress').value.trim();
   if(!name||!phone||!address){alert('Please fill in Name, Phone and Address first.');return;}
   if(!/^[0-9+\-\s]{7,15}$/.test(phone)){alert('Please enter a valid phone number.');return;}
-  // Owner bypass — skip bKash step entirely and place order directly
-  const _isOwner=phone.replace(/[\s\-+]/g,'')===('16969696969');
-  if(_isOwner){submitOrder();return;}
   document.getElementById('bkashAmountDisplay').textContent='৳'+deliveryCharge;
   document.getElementById('bkashStep1').style.display='none';
   document.getElementById('bkashStep2').style.display='block';
@@ -2898,9 +2874,6 @@ async function submitOrder(){
     if(trxMsg){trxMsg.style.color='#22c55e';trxMsg.textContent='✓ Payment verified!';}
     if(confirmBtn){confirmBtn.textContent='Placing order…';} // stays disabled
   }
-  // Owner bypass: show loading on the Step 1 proceed button since Step 2 is never shown
-  const _proceedBtn=_isOwner?document.getElementById('bkashStep1')?.querySelector('.submit-btn'):null;
-  if(_proceedBtn){_proceedBtn.disabled=true;_proceedBtn.textContent='Placing order…';}
   const zone=document.querySelector('.delivery-opt.active .delivery-opt-name')?.textContent||'Inside Dhaka';
   if(confirmBtn){confirmBtn.disabled=true;confirmBtn.textContent='Placing order…';}
   const mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -2967,13 +2940,12 @@ async function submitOrder(){
   document.body.appendChild(waLink);waLink.click();document.body.removeChild(waLink);
 
   // ── TELEGRAM NOTIFICATION ──
-  const itemLines=_orderItems.map((it,i)=>{
+  const itemLines=cart.map((it,i)=>{
     if(it.type==='custom-poster') return`  ${i+1}. Custom Poster — ${it.sz}, ${it.lam} — ৳${it.unitPrice}`;
-    if(it.type==='polaroid-custom'||it.type==='custom-polaroid') return`  ${i+1}. Custom Polaroids x${it.qty} — ৳${it.unitPrice*it.qty}`;
+    if(it.type==='polaroid-custom') return`  ${i+1}. Custom Polaroids x${it.qty} — ৳${it.unitPrice*it.qty}`;
     return`  ${i+1}. ${it.name}${it.sz?' — '+it.sz:''}${it.lam?', '+it.lam:''} x${it.qty} — ৳${it.unitPrice*it.qty}`;
   }).join('\n');
 
-  const _dc=order.delivery.charge;
   const tgMsg=`🛍 <b>NEW ORDER</b>\n`+
     `━━━━━━━━━━━━━━\n`+
     `👤 <b>${name}</b>\n`+
@@ -2984,24 +2956,21 @@ async function submitOrder(){
     `━━━━━━━━━━━━━━\n`+
     `🛒 <b>Items:</b>\n${itemLines}\n`+
     `━━━━━━━━━━━━━━\n`+
-    (_isOwner?`🔑 OWNER ORDER (no delivery charge)\n`:`🚚 Delivery: ${zone} (+৳${_dc})\n`)+
+    `🚚 Delivery: ${zone} (+৳${deliveryCharge})\n`+
     `💰 <b>Grand Total: ৳${order.grandTotal}</b>\n`+
     `🕐 ${order.date}`;
 
   const tgOk = await sendTelegram(tgMsg);
   if(!tgOk){
-    // Telegram failed — roll back order save and restore UI
+    // Telegram failed — roll back order save and re-enable button
     orders.shift();
     ss('pl2_orders',orders);
-    // Re-enable whichever button is visible
-    if(_isOwner){
-      if(_proceedBtn){_proceedBtn.disabled=false;_proceedBtn.textContent='PROCEED TO PAYMENT →';}
-      toast('❌ Could not send order — check your connection and try again.');
-    } else {
-      if(confirmBtn){confirmBtn.disabled=false;confirmBtn.textContent='✓ CONFIRM ORDER';}
-      const trxMsgEl=document.getElementById('trxVerifyMsg');
-      if(trxMsgEl){trxMsgEl.style.color='#e11d48';trxMsgEl.textContent='❌ Could not send order — check your connection and try again.';}
+    if(confirmBtn){
+      confirmBtn.disabled=false;
+      confirmBtn.textContent='✓ CONFIRM ORDER';
     }
+    const trxMsgEl=document.getElementById('trxVerifyMsg');
+    if(trxMsgEl){trxMsgEl.style.color='#e11d48';trxMsgEl.textContent='❌ Could not send order — check your connection and try again.';}
     return;
   }
 
@@ -3028,17 +2997,6 @@ async function submitOrder(){
   updateCartCount(); syncCartToFb();
   if(!cart.length && _fbDb){_fbDb.ref('pl2/pl2_cart_'+_cartSessionId).remove();}
   ['custName','custPhone','custAddress','custNotes','custEmail'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  // Restore proceed button if owner bypass was used
-  if(_isOwner && _proceedBtn){_proceedBtn.disabled=false;_proceedBtn.textContent='PROCEED TO PAYMENT →';}
-  // Reset bKash step UI for next customer
-  const _s1=document.getElementById('bkashStep1');
-  const _s2=document.getElementById('bkashStep2');
-  if(_s1)_s1.style.display='block';
-  if(_s2)_s2.style.display='none';
-  const _trxInput=document.getElementById('bkashTrxId');
-  if(_trxInput)_trxInput.value='';
-  const _trxMsgFinal=document.getElementById('trxVerifyMsg');
-  if(_trxMsgFinal)_trxMsgFinal.textContent='';
   document.getElementById('modalFormWrap').style.display='none';
   document.getElementById('successState').classList.add('visible');
 }
@@ -3294,94 +3252,43 @@ function deleteMag(id){
 }
 
 // PRICES
-// Helper: onerror fallbacks to avoid quote-nesting issues in innerHTML strings
-function _comboImgErr(img){img.parentNode.innerHTML='<div class="combo-poster-label">FULL<br>WALL</div>';}
-function _gridImgErr(img){img.parentNode.style.background='#1a1a1a';}
-
-var _comboSlideIdx = 0;
-var _comboSlideTimer = null;
-
 function renderComboArt(){
   var wall = document.getElementById('comboWall');
   if(!wall) return;
-
-  // Collect images: combo_imgs array first, fall back to combo_img, then auto-collage
-  var imgs = [];
-  var stored = PRICES.combo_imgs;
-  if(Array.isArray(stored) && stored.length) {
-    imgs = stored.filter(Boolean);
-  } else if(PRICES.combo_img) {
-    imgs = [PRICES.combo_img];
-  } else {
-    // Auto-collage from real poster images
-    posters.forEach(function(p){ if(p.imgs && p.imgs.length) imgs.push(p.imgs[0]); });
-    if(!imgs.length){
-      wall.innerHTML = '<div class="combo-poster-label">FULL<br>WALL</div>';
-      _comboStopSlide();
-      return;
-    }
-    imgs.sort(function(){ return Math.random() - .5; });
-    imgs = imgs.slice(0, 8);
-  }
-
-  if(imgs.length === 1){
-    // Single image — no carousel needed
-    wall.innerHTML = '<img src="'+imgs[0]+'" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="_comboImgErr(this)">';
-    _comboStopSlide();
+  var customImg = PRICES.combo_img || '';
+  if(customImg){
+    wall.innerHTML = '<img src="'+customImg+'" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentNode.innerHTML='<div class=\'combo-poster-label\'>FULL<br>WALL</div>'">';
     return;
   }
-
-  // Build track
-  var slides = imgs.map(function(src){
-    return '<div class="combo-slide"><img src="'+src+'" onerror="_gridImgErr(this)"></div>';
-  }).join('');
-  var dots = imgs.map(function(_,i){
-    return '<button class="combo-slide-dot'+(i===0?' active':'')+'" onclick="comboGoTo('+i+')" aria-label="Slide '+(i+1)+'"></button>';
-  }).join('');
-
-  wall.innerHTML =
-    '<div class="combo-slide-track" id="comboTrack">'+slides+'</div>'+
-    '<button class="combo-slide-arr prev" onclick="comboMove(-1)" aria-label="Previous">&#8249;</button>'+
-    '<button class="combo-slide-arr next" onclick="comboMove(1)" aria-label="Next">&#8250;</button>'+
-    '<div class="combo-slide-dots">'+dots+'</div>';
-
-  _comboSlideIdx = 0;
-  _comboStopSlide();
-  _comboSlideTimer = setInterval(function(){ comboMove(1); }, 3000);
-}
-
-function _comboStopSlide(){
-  if(_comboSlideTimer){ clearInterval(_comboSlideTimer); _comboSlideTimer = null; }
-}
-
-function comboGoTo(i){
-  var track = document.getElementById('comboTrack');
-  if(!track) return;
-  var len = track.children.length;
-  _comboSlideIdx = (i + len) % len;
-  track.style.transform = 'translateX(-'+(_comboSlideIdx*100)+'%)';
-  document.querySelectorAll('.combo-slide-dot').forEach(function(d,j){
-    d.classList.toggle('active', j === _comboSlideIdx);
+  // Build collage from real poster images
+  var allImgs = [];
+  posters.forEach(function(p){ if(p.imgs && p.imgs.length) allImgs.push(p.imgs[0]); });
+  if(!allImgs.length){
+    wall.innerHTML = '<div class="combo-poster-label">FULL<br>WALL</div>';
+    return;
+  }
+  // Shuffle and pick up to 6
+  allImgs.sort(function(){ return Math.random()-.5; });
+  var picks = allImgs.slice(0,6);
+  var cols = picks.length >= 4 ? 2 : 1;
+  var grid = '<div style="display:grid;grid-template-columns:repeat('+cols+',1fr);gap:3px;width:100%;height:100%;">';
+  picks.forEach(function(src){
+    grid += '<div style="overflow:hidden;"><img src="'+src+'" style="width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.85);" onerror="this.parentNode.style.background='#1a1a1a'"></div>';
   });
-}
-
-function comboMove(dir){
-  var track = document.getElementById('comboTrack');
-  if(!track) return;
-  comboGoTo(_comboSlideIdx + dir);
+  grid += '</div>';
+  wall.innerHTML = grid;
 }
 function loadPrices(){
   PRICES=gs('pl2_pr',DEF_PR);
   ['a5','a4','a3','pol','m8','m12','m16','combo'].forEach(k=>{const el=document.getElementById('pr-'+k);if(el)el.value=PRICES[k];});
   var ci=document.getElementById('pr-combo-img');if(ci)ci.value=PRICES.combo_img||'';
+  var cp=document.getElementById('pr-combo-img-prev');if(cp)cp.innerHTML=PRICES.combo_img?'<img src="'+PRICES.combo_img+'" style="width:100%;max-height:120px;object-fit:cover;border:1px solid #333;margin-top:.5rem;">':'';
   document.getElementById('pr-dd').value=PRICES.dd;
   document.getElementById('pr-do').value=PRICES.dout;
-  _renderComboImgGrid();
 }
 function savePrices(){
   var _ci=document.getElementById('pr-combo-img');var _civ=_ci?_ci.value.trim():'';
-  var _imgs = Array.isArray(PRICES.combo_imgs) ? PRICES.combo_imgs : [];
-  PRICES={a5:+document.getElementById('pr-a5').value,a4:+document.getElementById('pr-a4').value,a3:+document.getElementById('pr-a3').value,pol:+document.getElementById('pr-pol').value,m8:+document.getElementById('pr-m8').value,m12:+document.getElementById('pr-m12').value,m16:+document.getElementById('pr-m16').value,combo:+document.getElementById('pr-combo').value,dd:+document.getElementById('pr-dd').value,dout:+document.getElementById('pr-do').value,combo_img:_civ,combo_imgs:_imgs};
+  PRICES={a5:+document.getElementById('pr-a5').value,a4:+document.getElementById('pr-a4').value,a3:+document.getElementById('pr-a3').value,pol:+document.getElementById('pr-pol').value,m8:+document.getElementById('pr-m8').value,m12:+document.getElementById('pr-m12').value,m16:+document.getElementById('pr-m16').value,combo:+document.getElementById('pr-combo').value,dd:+document.getElementById('pr-dd').value,dout:+document.getElementById('pr-do').value,combo_img:_civ};
   ss('pl2_pr',PRICES);
   document.getElementById('storeComboPrice').textContent=PRICES.combo;
   renderMagazines();
@@ -3399,120 +3306,6 @@ function savePricesWithFeedback(){
     b.setAttribute('style','font-family:\'Poppins\',sans-serif;font-weight:700;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#000;background:#cc1100;border:none;padding:.7rem 1.5rem;cursor:pointer;');
     b.textContent='Save All';
   }, 3000);
-}
-
-// ── COMBO SLIDESHOW IMAGES — ADMIN ──
-function _renderComboImgGrid(){
-  var grid = document.getElementById('comboImgGrid');
-  if(!grid) return;
-  var imgs = Array.isArray(PRICES.combo_imgs) ? PRICES.combo_imgs : [];
-  if(!imgs.length){
-    grid.innerHTML = '<div style="font-size:.7rem;opacity:.3;padding:.5rem;">No images yet — auto-collage will be used.</div>';
-    return;
-  }
-  grid.innerHTML = imgs.map(function(src, i){
-    return '<div class="combo-img-thumb">'
-      + '<img src="'+src+'" onerror="this.parentNode.style.background=\'#2a0000\'">'
-      + '<button class="combo-img-del" onclick="removeComboImg('+i+')" title="Remove">✕</button>'
-      + '</div>';
-  }).join('');
-}
-
-function addComboImgs(input){
-  var files = Array.from(input.files);
-  if(!files.length) return;
-  input.value = '';
-  if(!Array.isArray(PRICES.combo_imgs)) PRICES.combo_imgs = [];
-  var done = 0;
-  files.forEach(function(f){
-    var r = new FileReader();
-    r.onload = function(e){
-      PRICES.combo_imgs.push(e.target.result);
-      done++;
-      if(done === files.length){
-        ss('pl2_pr', PRICES);
-        _renderComboImgGrid();
-        renderComboArt();
-        toast(files.length + ' image'+(files.length>1?'s':'')+' added and saved!');
-      }
-    };
-    r.readAsDataURL(f);
-  });
-}
-
-function removeComboImg(i){
-  if(!Array.isArray(PRICES.combo_imgs)) return;
-  PRICES.combo_imgs.splice(i, 1);
-  ss('pl2_pr', PRICES);
-  _renderComboImgGrid();
-  renderComboArt();
-}
-
-// Inline storefront editor for combo images (admin edit bar)
-function openComboImgEditor(e){
-  if(!window._adminMode) return;
-  if(e) e.stopPropagation();
-  if(!Array.isArray(PRICES.combo_imgs)) PRICES.combo_imgs = [];
-  var thumbs = PRICES.combo_imgs.map(function(src, i){
-    return '<div class="iex-img-thumb" style="width:60px;height:78px;">'
-      + '<img src="'+src+'">'
-      + '<button class="iex-img-del" onclick="removeComboImg('+i+');_refreshIEXComboBody()">✕</button>'
-      + '</div>';
-  }).join('');
-  var bodyHTML =
-    '<div style="font-size:.6rem;opacity:.4;margin-bottom:.8rem;">Upload slide images for the combo wall. Leave empty to auto-collage.</div>'+
-    '<div style="border:2px dashed #cc1100;padding:1rem;text-align:center;position:relative;cursor:pointer;background:rgba(204,17,0,.06);border-radius:4px;margin-bottom:.8rem;">'+
-      '<input type="file" accept="image/*" multiple onchange="addComboImgsIEX(this)">'+
-      '<div style="font-size:1.2rem;">📁</div>'+
-      '<div style="font-family:\'Poppins\',sans-serif;font-weight:700;font-size:.72rem;color:var(--red);">Upload images</div>'+
-      '<div style="font-size:.58rem;opacity:.4;margin-top:.2rem;">Select multiple at once</div>'+
-    '</div>'+
-    '<div class="iex-img-grid" id="iexComboGrid">'+(thumbs||'<div style="font-size:.7rem;opacity:.3;">No images yet</div>')+'</div>';
-  var footHTML =
-    '<button class="iex-save" onclick="saveComboImgsIEX()">Save Slides</button>'+
-    '<button class="iex-del" onclick="PRICES.combo_imgs=[];_refreshIEXComboBody();toast(\'Cleared\');">Clear All</button>'+
-    '<button class="iex-cancel" onclick="closeIEX()">Cancel</button>';
-  positionIEX(e || {clientX: window.innerWidth/2, clientY: window.innerHeight/2});
-  openIEX('COMBO SLIDES', bodyHTML, footHTML);
-}
-
-function addComboImgsIEX(input){
-  var files = Array.from(input.files);
-  if(!files.length) return;
-  input.value = '';
-  if(!Array.isArray(PRICES.combo_imgs)) PRICES.combo_imgs = [];
-  var done = 0;
-  files.forEach(function(f){
-    var r = new FileReader();
-    r.onload = function(e){
-      PRICES.combo_imgs.push(e.target.result);
-      done++;
-      if(done === files.length) _refreshIEXComboBody();
-    };
-    r.readAsDataURL(f);
-  });
-}
-
-function _refreshIEXComboBody(){
-  var grid = document.getElementById('iexComboGrid');
-  if(!grid) return;
-  var imgs = Array.isArray(PRICES.combo_imgs) ? PRICES.combo_imgs : [];
-  if(!imgs.length){ grid.innerHTML = '<div style="font-size:.7rem;opacity:.3;">No images yet</div>'; return; }
-  grid.innerHTML = imgs.map(function(src, i){
-    return '<div class="iex-img-thumb" style="width:60px;height:78px;">'
-      + '<img src="'+src+'">'
-      + '<button class="iex-img-del" onclick="removeComboImg('+i+');_refreshIEXComboBody()">✕</button>'
-      + '</div>';
-  }).join('');
-}
-
-function saveComboImgsIEX(){
-  if(!Array.isArray(PRICES.combo_imgs)) PRICES.combo_imgs = [];
-  ss('pl2_pr', PRICES);
-  renderComboArt();
-  _renderComboImgGrid();
-  closeIEX();
-  toast('Combo slides saved!');
 }
 
 // REVIEWS ADMIN
@@ -3751,7 +3544,7 @@ function clearHeroPanel(n){
   if(!window._adminMode) return;
   _lsSet('pl2_hero' + n, '');
   localStorage.removeItem('pl2_hero' + n);
-  if(_fbDb) _fbDb.ref('pl2/pl2_hero' + n).remove();
+  _fbDb.ref('pl2/pl2_hero' + n).remove();
   applyHeroPanel(n, null);
   renderHeroAdminPreview(n, null);
   toast('Panel ' + n + ' cleared');
@@ -3772,7 +3565,7 @@ function loadHeroPanels(){
     if(data){ try{ applyHeroPanel(n, data); }catch(e){} }
     else {
       // Also try Firebase directly in case localStorage is stale/empty
-      if(_fbDb) _fbDb.ref('pl2/pl2_hero' + n).once('value', function(snap){
+      _fbDb.ref('pl2/pl2_hero' + n).once('value', function(snap){
         var val = snap.val();
         if(val){ _lsSet('pl2_hero' + n, val); applyHeroPanel(n, val); }
       });
@@ -3844,16 +3637,12 @@ setTimeout(_wireIEPButtons, 0);
 function enableInlineEdit(){
   document.getElementById('adminEditBar').classList.add('active');
   document.body.classList.add('edit-mode');
-  var ceb = document.getElementById('comboEditBtn');
-  if(ceb) ceb.style.display = 'block';
   setTimeout(attachEditHandlers,200);
 }
 
 function disableInlineEdit(){
   document.getElementById('adminEditBar').classList.remove('active');
   document.body.classList.remove('edit-mode');
-  var ceb = document.getElementById('comboEditBtn');
-  if(ceb) ceb.style.display = 'none';
   closeIEP();
 }
 
