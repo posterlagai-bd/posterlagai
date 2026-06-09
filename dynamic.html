@@ -138,7 +138,13 @@
 <style>
 :root{--black:#0a0a0a;--red:#cc1100;--red-dark:#8b0000;--red-light:#ff2200;--white:#fff;--grey:#1a1a1a;--grey-mid:#2a2a2a;--border:#2e2e2e;--wa:#25D366;--wa-dark:#128C7E;}
 
-/* ── CUSTOM DESIGNS SECTION ── */
+/* ── UPLOAD CONFIRMATION BADGE + PULSE ── */
+.upload-ready-badge{display:flex;align-items:center;gap:.5rem;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.45);color:#22c55e;font-family:'Poppins',sans-serif;font-weight:700;font-size:.72rem;letter-spacing:.06em;padding:.55rem 1rem;border-radius:4px;margin:.6rem 0;animation:badge-in .25s ease;}
+@keyframes badge-in{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
+@keyframes pulse-save{0%,100%{background:var(--red);box-shadow:none;}50%{background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.35);}}
+.upload-pulse{animation:pulse-save .6s ease 3!important;}
+
+
 .custom-sec{background:linear-gradient(180deg,#0d0d0d 0%,var(--grey) 100%);}
 .custom-tabs{display:flex;gap:.6rem;margin-bottom:2.5rem;border-bottom:1px solid var(--border);padding-bottom:0;}
 .ctab{font-family:'Poppins',sans-serif;font-weight:700;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;background:none;border:none;color:var(--white);opacity:.4;padding:.75rem 1.4rem;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;}
@@ -2951,21 +2957,6 @@ async function submitOrder(){
     }, 2000);
   }
 
-  // ── WHATSAPP NOTIFICATION ──
-  const waLines=[
-    `🛍 *NEW ORDER — Poster Lagai*`,
-    `👤 ${name}`,
-    `📞 ${phone}`,
-    `📍 ${address}`,
-    `💰 Total: ৳${order.grandTotal} (${zone})`,
-    `🕐 ${order.date}`
-  ].join('\n');
-  const waUrl=`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(waLines)}`;
-  // Use a temporary link to avoid popup blocker
-  const waLink=document.createElement('a');
-  waLink.href=waUrl;waLink.target='_blank';waLink.rel='noopener';
-  document.body.appendChild(waLink);waLink.click();document.body.removeChild(waLink);
-
   // ── TELEGRAM NOTIFICATION ──
   const itemLines=_orderItems.map((it,i)=>{
     if(it.type==='custom-poster') return`  ${i+1}. Custom Poster — ${it.sz}, ${it.lam} — ৳${it.unitPrice}`;
@@ -2989,6 +2980,23 @@ async function submitOrder(){
     `🕐 ${order.date}`;
 
   const tgOk = await sendTelegram(tgMsg);
+
+  // ── WHATSAPP NOTIFICATION (only for real customer orders, after Telegram succeeds) ──
+  if(tgOk && !_isOwner){
+    const waLines=[
+      `\uD83D\uDED8 *NEW ORDER \u2014 Poster Lagai*`,
+      `\uD83D\uDC64 ${name}`,
+      `\uD83D\uDCDE ${phone}`,
+      `\uD83D\uDCCD ${address}`,
+      `\uD83D\uDCB0 Total: \u09F3${order.grandTotal} (${zone})`,
+      `\uD83D\uDD50 ${order.date}`
+    ].join('\n');
+    const waUrl=`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(waLines)}`;
+    const waLink=document.createElement('a');
+    waLink.href=waUrl;waLink.target='_blank';waLink.rel='noopener';
+    document.body.appendChild(waLink);waLink.click();document.body.removeChild(waLink);
+  }
+
   if(!tgOk){
     // Telegram failed — roll back order save and restore UI
     orders.shift();
@@ -3066,11 +3074,12 @@ function hideCatForm(){document.getElementById('catFormWrap').style.display='non
 function saveCategory(){
   const name=document.getElementById('cat-name').value.trim();
   const img=document.getElementById('cat-img').value.trim();
-  if(!name||!img){alert('Name and image required.');return;}
+  if(!name||!img){alert('Name and cover image required.\n\nUpload an image or paste an image URL.');return;}
   const eid=document.getElementById('cat-edit-id').value;
   if(eid){const c=cats.find(x=>x.id==eid);if(c)Object.assign(c,{name,img});}
   else{cats.push({id:nid++,name,img});ss('pl2_nid',nid);}
-  ss('pl2_cats',cats);hideCatForm();renderAdminCats();renderCategories();toast('Category saved!');
+  ss('pl2_cats',cats);hideCatForm();renderAdminCats();renderCategories();
+  toast('✅ Category "'+name+'" saved!');
 }
 function editCategory(id){
   const c=cats.find(x=>x.id===id);if(!c)return;
@@ -3176,8 +3185,11 @@ function savePoster(catId){
   if(eid){const p=posters.find(x=>x.id==eid);if(p)Object.assign(p,{name,imgs,img:imgs[0]});}
   else{posters.push({id:nid++,catId,name,imgs,img:imgs[0]});ss('pl2_nid',nid);}
   ss('pl2_posters',posters);
+  // Clear any upload badge
+  var pform=document.getElementById('pform_'+catId);
+  if(pform){var ob=pform.querySelector('.upload-ready-badge');if(ob)ob.remove();}
   hidePosterForm(catId);renderAdminCats();renderCategories();updateDash();
-  toast(`Poster saved — ${imgs.length} image${imgs.length!==1?'s':''}!`);
+  toast('✅ Poster "'+name+'" saved — '+imgs.length+' image'+(imgs.length!==1?'s':'')+'!');
 }
 function deletePoster(pid){
   if(!confirm('Delete this poster?'))return;
@@ -3198,7 +3210,22 @@ function fileMultiPoster(input,catId){
         const merged=[...lines,...results];
         document.getElementById('pi_'+catId).value=merged.join('\n');
         renderPosterPreviews(catId,merged);
-        toast(files.length+' image(s) added!');
+        // Show upload-ready confirmation
+        var pform=document.getElementById('pform_'+catId);
+        if(pform){
+          var existing_badge=pform.querySelector('.upload-ready-badge');
+          if(!existing_badge){
+            var badge=document.createElement('div');
+            badge.className='upload-ready-badge';
+            badge.textContent='✅ '+files.length+' image'+(files.length>1?'s':'')+' loaded — click Save Poster below';
+            var pprev=document.getElementById('pp_'+catId);
+            if(pprev)pprev.insertAdjacentElement('beforebegin',badge);
+          }
+          // Pulse the save button
+          var saveBtn=pform.querySelector('.btn-red[onclick*="savePoster"]');
+          if(saveBtn){saveBtn.classList.add('upload-pulse');setTimeout(()=>saveBtn.classList.remove('upload-pulse'),3000);}
+        }
+        toast(files.length+' image(s) ready — click Save Poster!');
       }};
     r.readAsDataURL(f);
   });
@@ -3724,8 +3751,8 @@ function renderLiveCarts(){
 function toggleForm(id){const el=document.getElementById(id);el.style.display=el.style.display==='none'?'block':'none';}
 function dzOver(e,el){e.preventDefault();el.classList.add('drag-over');}
 function dzLeave(el){el.classList.remove('drag-over');}
-function dzDropSingle(e,inputId,previewId){e.preventDefault();dzLeave(e.currentTarget);const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){const r=new FileReader();r.onload=ev=>{document.getElementById(inputId).value=ev.target.result;document.getElementById(previewId).innerHTML=`<img class="img-preview cover" src="${ev.target.result}">`;};r.readAsDataURL(f);}}
-function fileSingle(input,inputId,previewId){const f=input.files[0];if(f){const r=new FileReader();r.onload=e=>{document.getElementById(inputId).value=e.target.result;document.getElementById(previewId).innerHTML=`<img class="img-preview cover" src="${e.target.result}">`;};r.readAsDataURL(f);}}
+function dzDropSingle(e,inputId,previewId){e.preventDefault();dzLeave(e.currentTarget);const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){const r=new FileReader();r.onload=ev=>{document.getElementById(inputId).value=ev.target.result;var prevEl=document.getElementById(previewId);prevEl.innerHTML=`<img class="img-preview cover" src="${ev.target.result}"><div class="upload-ready-badge">✅ Image ready — click Save below</div>`;};r.readAsDataURL(f);}}
+function fileSingle(input,inputId,previewId){const f=input.files[0];if(f){const r=new FileReader();r.onload=e=>{document.getElementById(inputId).value=e.target.result;var prevEl=document.getElementById(previewId);prevEl.innerHTML=`<img class="img-preview cover" src="${e.target.result}"><div class="upload-ready-badge">✅ Image ready — click Save below</div>`;};r.readAsDataURL(f);}}
 function esc(s){return(s||'').replace(/'/g,'&apos;').replace(/"/g,'&quot;');}
 
 // ── HERO PANELS ──
@@ -3739,6 +3766,18 @@ function uploadHeroPanel(n, input) {
     ss('pl2_hero' + n, dataUrl);
     applyHeroPanel(n, dataUrl);
     renderHeroAdminPreview(n, dataUrl);
+    // Show confirmation badge below the preview
+    var prev=document.getElementById('heroPreview'+n);
+    if(prev){
+      var ob=prev.parentNode.querySelector('.upload-ready-badge');
+      if(ob)ob.remove();
+      var badge=document.createElement('div');
+      badge.className='upload-ready-badge';
+      badge.style.marginTop='.4rem';
+      badge.textContent='✅ Panel '+n+' saved!';
+      prev.insertAdjacentElement('afterend',badge);
+      setTimeout(function(){badge.remove();},3500);
+    }
     toast('Panel ' + n + ' updated!');
   };
   r.readAsDataURL(f);
@@ -3996,6 +4035,20 @@ function openIEP(el,e){
           pendingDataUrl=ev.target.result;
           var prev=document.getElementById('iepImgPrev');
           if(prev){prev.src=pendingDataUrl;prev.className='iep-img-preview show';}
+          // Show confirmation badge
+          var body=document.getElementById('iepBody');
+          if(body){
+            var ob=body.querySelector('.upload-ready-badge');if(ob)ob.remove();
+            var badge=document.createElement('div');
+            badge.className='upload-ready-badge';
+            badge.textContent='✅ Image loaded — click SAVE → to apply';
+            var drop=body.querySelector('.iep-drop');
+            if(drop)drop.insertAdjacentElement('afterend',badge);
+            else body.insertAdjacentElement('afterbegin',badge);
+          }
+          // Pulse save button
+          var sb2=document.getElementById('iepSaveBtn');
+          if(sb2){sb2.classList.add('upload-pulse');setTimeout(function(){sb2.classList.remove('upload-pulse');},3000);}
         };
         r.readAsDataURL(f);
       });
@@ -4209,7 +4262,10 @@ function iexCatImgFile(input, catId){
   r.onload = function(ev){
     document.getElementById('iex-catimg').value = ev.target.result;
     var prev = document.getElementById('iex-catprev');
-    if(prev) prev.innerHTML = '<img src="' + ev.target.result + '" style="width:100%;max-height:120px;object-fit:cover;border:1px solid #333;">';
+    if(prev) prev.innerHTML = '<img src="' + ev.target.result + '" style="width:100%;max-height:120px;object-fit:cover;border:1px solid #333;"><div class="upload-ready-badge">✅ Image ready — click Save below</div>';
+    // Pulse save button
+    var saveBtn = document.querySelector('#ieXPopover .iex-foot .iex-save');
+    if(saveBtn){saveBtn.classList.add('upload-pulse');setTimeout(function(){saveBtn.classList.remove('upload-pulse');},3000);}
   };
   r.readAsDataURL(f);
 }
@@ -4289,7 +4345,20 @@ function iexAddPosterFiles(input, pid, catId){
       if(done === files.length){
         _iexPosterImgs = _iexPosterImgs.concat(results);
         refreshPosterImgThumbs(pid, catId);
-        toast(files.length + ' image(s) added!');
+        // Show confirmation badge in popover
+        var body = document.querySelector('#ieXPopover .iex-body');
+        if(body){
+          var ob = body.querySelector('.upload-ready-badge');
+          if(ob) ob.remove();
+          var badge = document.createElement('div');
+          badge.className = 'upload-ready-badge';
+          badge.textContent = '✅ '+files.length+' image'+(files.length>1?'s':'')+' loaded — click Save Images below';
+          body.insertAdjacentElement('afterbegin', badge);
+        }
+        // Pulse save button
+        var saveBtn = document.querySelector('#ieXPopover .iex-foot .iex-save');
+        if(saveBtn){saveBtn.classList.add('upload-pulse');setTimeout(function(){saveBtn.classList.remove('upload-pulse');},3000);}
+        toast(files.length + ' image(s) ready!');
       }
     };
     r.readAsDataURL(f);
@@ -4325,7 +4394,7 @@ function savePosterImgs(ev, pid, catId){
   ss('pl2_posters', posters);
   closeIEX();
   renderPosterList(catId);
-  toast('Poster images saved!');
+  toast('✅ Poster images saved — '+_iexPosterImgs.length+' image'+((_iexPosterImgs.length!==1)?'s':'')+'!');
 }
 
 // ── POSTER INFO EDIT POPOVER (name + delete) ──
@@ -4388,7 +4457,20 @@ function ailFileUpload(input){
       if(done === files.length){
         _ailImgs = _ailImgs.concat(results);
         renderAilPreview();
-        toast(files.length + ' image(s) ready!');
+        // Show confirmation badge
+        var wrap = document.getElementById('addPosterInlineWrap');
+        if(wrap){
+          var ob = wrap.querySelector('.upload-ready-badge'); if(ob) ob.remove();
+          var badge = document.createElement('div');
+          badge.className = 'upload-ready-badge';
+          badge.textContent = '✅ '+files.length+' image'+(files.length>1?'s':'')+' loaded — click Save Poster below';
+          var prev = document.getElementById('ail-preview');
+          if(prev) prev.insertAdjacentElement('beforebegin', badge);
+          // Pulse the save button
+          var sb = wrap.querySelector('.btn-red[onclick*="saveAddPosterInline"]');
+          if(sb){sb.classList.add('upload-pulse');setTimeout(function(){sb.classList.remove('upload-pulse');},3000);}
+        }
+        toast(files.length + ' image(s) ready — click Save Poster!');
       }
     };
     r.readAsDataURL(f);
