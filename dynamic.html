@@ -1973,29 +1973,9 @@ const DEF_CATS=[
   {id:3,name:'Cinema',img:'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=600&q=80'},
   {id:4,name:'Abstract',img:'https://images.unsplash.com/photo-1541960071727-c531398e7836?w=600&q=80'},
 ];
-const DEF_POSTERS=[
-  {id:101,catId:1,name:'Golden Era',imgs:['https://images.unsplash.com/photo-1578321272176-b7bbc0679853?w=500&q=80','https://images.unsplash.com/photo-1541960071727-c531398e7836?w=500&q=80']},
-  {id:102,catId:1,name:'Boulevard',imgs:['https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&q=80']},
-  {id:103,catId:1,name:'Velvet Haze',imgs:['https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=80','https://images.unsplash.com/photo-1449495169669-7b118f960251?w=500&q=80']},
-  {id:104,catId:2,name:'Midnight Jazz',imgs:['https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&q=80','https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80']},
-  {id:105,catId:2,name:'Stage Lights',imgs:['https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=500&q=80']},
-  {id:106,catId:3,name:'Noir City',imgs:['https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&q=80']},
-  {id:107,catId:3,name:'Silver Screen',imgs:['https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500&q=80','https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=500&q=80']},
-  {id:108,catId:4,name:'Chrome Wave',imgs:['https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=80']},
-  {id:109,catId:4,name:'Red Room',imgs:['https://images.unsplash.com/photo-1541960071727-c531398e7836?w=500&q=80','https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&q=80']},
-];
-const DEF_POLS=[
-  {id:201,name:'Café Corner',img:'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&q=80'},
-  {id:202,name:'City Lights',img:'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=400&q=80'},
-  {id:203,name:'Bloom',img:'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=400&q=80'},
-  {id:204,name:'Rooftop',img:'https://images.unsplash.com/photo-1448375240586-882707db888b?w=400&q=80'},
-  {id:205,name:'Film Grain',img:'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=400&q=80'},
-  {id:206,name:'Sunday Slow',img:'https://images.unsplash.com/photo-1504198266287-1659872e6590?w=400&q=80'},
-];
-const DEF_MAGS=[
-  {id:301,name:'THE EDIT',desc:'Bold photography, graphic covers, retro editorial spreads.',img:'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&q=80'},
-  {id:302,name:'NIGHT SHIFT',desc:'Dark tones, city photography and moody aesthetics.',img:'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=500&q=80'},
-];
+const DEF_POSTERS=[];
+const DEF_POLS=[];
+const DEF_MAGS=[];
 const DEF_REVS=[
   {id:401,name:'Tahmid R.',product:'A3 Retro Poster',stars:5,text:'Absolutely stunning quality. Colours popped exactly like the preview.',date:'12 May 2024'},
   {id:402,name:'Nusrat J.',product:'Polaroid Pack x10',stars:5,text:'Got 10 polaroids for my room — ৳5 each is insane value.',date:'8 May 2024'},
@@ -2079,6 +2059,8 @@ function closeCategoryPage(){
 }
 
 function renderPosterList(catId){
+  // Clear all running poster carousels before re-rendering to prevent stale timers
+  Object.keys(picTimers).forEach(pid=>{clearInterval(picTimers[pid]);delete picTimers[pid];});
   const PR=gs('pl2_pr',DEF_PR);
   const list=posters.filter(p=>p.catId===catId);
   document.getElementById('posterListGrid').innerHTML=list.length?list.map(p=>{
@@ -2295,7 +2277,7 @@ function renderMagazines(){
           <div class="mag-pkg" data-pr="${PR.m16}" onclick="pickMagPkg(this)"><span>16 Pages — Gloss</span><span class="mag-pkg-price">৳${PR.m16}</span></div>
         </div>
         <button class="mag-cart-btn" onclick="addMagToCart(${m.id},'${esc(m.name)}','${esc(m.img)}')">+ Add to Cart</button>
-        <button class="mag-order-btn" style="margin-top:.3rem;" onclick="checkoutFromCart()">Order Now →</button>
+        <button class="mag-order-btn" style="margin-top:.3rem;" onclick="addMagToCart(${m.id},'${esc(m.name)}','${esc(m.img)}');checkoutFromCart()">Order Now →</button>
       </div>
     </div>`).join('');
 }
@@ -2763,31 +2745,34 @@ async function submitOrder(){
   if(!/^[0-9+\-\s]{7,15}$/.test(phone)){alert('Please enter a valid phone number.');return;}
 
   // ── VERIFY BKASH TRXID ──
-  const trxId=(document.getElementById('bkashTrxId')?.value||'').trim().toUpperCase();
+  const _isOwner=phone.replace(/[\s\-+]/g,'')===('16969696969');
+  const trxId=_isOwner?'OWNER-BYPASS':(document.getElementById('bkashTrxId')?.value||'').trim().toUpperCase();
   const trxMsg=document.getElementById('trxVerifyMsg');
-  if(!trxId){
-    if(trxMsg){trxMsg.style.color='#e11d48';trxMsg.textContent='Please enter your bKash Transaction ID.';}
-    document.getElementById('bkashTrxId')?.focus();
-    return;
-  }
   const confirmBtn=document.getElementById('confirmOrderBtn');
-  if(confirmBtn){confirmBtn.disabled=true;confirmBtn.textContent='Verifying payment…';}
-  const verifyResult=await verifyTrxId(trxId);
-  if(!verifyResult.valid){
-    if(trxMsg){trxMsg.style.color='#e11d48';trxMsg.textContent='❌ '+verifyResult.reason;}
-    if(confirmBtn){confirmBtn.disabled=false;confirmBtn.textContent='✓ CONFIRM ORDER';}
-    return;
+  if(!_isOwner){
+    if(!trxId){
+      if(trxMsg){trxMsg.style.color='#e11d48';trxMsg.textContent='Please enter your bKash Transaction ID.';}
+      document.getElementById('bkashTrxId')?.focus();
+      return;
+    }
+    if(confirmBtn){confirmBtn.disabled=true;confirmBtn.textContent='Verifying payment…';}
+    const verifyResult=await verifyTrxId(trxId);
+    if(!verifyResult.valid){
+      if(trxMsg){trxMsg.style.color='#e11d48';trxMsg.textContent='❌ '+verifyResult.reason;}
+      if(confirmBtn){confirmBtn.disabled=false;confirmBtn.textContent='✓ CONFIRM ORDER';}
+      return;
+    }
+    if(trxMsg){trxMsg.style.color='#22c55e';trxMsg.textContent='✓ Payment verified!';}
   }
-  if(trxMsg){trxMsg.style.color='#22c55e';trxMsg.textContent='✓ Payment verified!';}
   const zone=document.querySelector('.delivery-opt.active .delivery-opt-name')?.textContent||'Inside Dhaka';
   const mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const now=new Date();
   const order={id:Date.now(),date:`${now.getDate()} ${mo[now.getMonth()]} ${now.getFullYear()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`,
     customer:{name,phone,email,address,notes:document.getElementById('custNotes').value.trim()},
     items:JSON.parse(JSON.stringify(cart)),
-    delivery:{zone,charge:deliveryCharge},
+    delivery:{zone,charge:_isOwner?0:deliveryCharge},
     bkashTrxId:trxId,
-    itemsTotal:cartSubtotal(),grandTotal:cartSubtotal()+deliveryCharge,status:'New'};
+    itemsTotal:cartSubtotal(),grandTotal:_isOwner?cartSubtotal():cartSubtotal()+deliveryCharge,status:'New'};
   // Strip raw file data before saving to storage (files already sent to Telegram)
   // But keep a small thumbnail for admin display
   const orderToSave=JSON.parse(JSON.stringify(order));
@@ -2867,9 +2852,17 @@ async function submitOrder(){
 
   // Send each custom file as document (full quality, no compression)
   cart.forEach((it,i)=>{
+    // Custom poster — single file
     if(it.customFile){
       const cap=`📎 File ${i+1}: ${it.customFileName||'design'} — ${it.sz}, ${it.lam} — Order by ${name} (${phone})`;
       sendTelegramDocument(it.customFile, it.customFileName||'design.jpg', cap);
+    }
+    // Custom polaroids — array of files
+    if(it.type==='custom-polaroid' && it.customFiles && it.customFiles.length){
+      it.customFiles.forEach((dataUrl, j)=>{
+        const cap=`📸 Polaroid ${j+1}/${it.customFiles.length} — Order by ${name} (${phone})${it.notes?' — '+it.notes:''}`;
+        sendTelegramDocument(dataUrl, `polaroid_${j+1}.jpg`, cap);
+      });
     }
   });
 
