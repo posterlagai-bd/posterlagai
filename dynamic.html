@@ -2842,6 +2842,9 @@ function showBkashPayStep(){
   const address=document.getElementById('custAddress').value.trim();
   if(!name||!phone||!address){alert('Please fill in Name, Phone and Address first.');return;}
   if(!/^[0-9+\-\s]{7,15}$/.test(phone)){alert('Please enter a valid phone number.');return;}
+  // Owner bypass — skip bKash step entirely and place order directly
+  const _isOwner=phone.replace(/[\s\-+]/g,'')===('16969696969');
+  if(_isOwner){submitOrder();return;}
   document.getElementById('bkashAmountDisplay').textContent='৳'+deliveryCharge;
   document.getElementById('bkashStep1').style.display='none';
   document.getElementById('bkashStep2').style.display='block';
@@ -2895,6 +2898,9 @@ async function submitOrder(){
     if(trxMsg){trxMsg.style.color='#22c55e';trxMsg.textContent='✓ Payment verified!';}
     if(confirmBtn){confirmBtn.textContent='Placing order…';} // stays disabled
   }
+  // Owner bypass: show loading on the Step 1 proceed button since Step 2 is never shown
+  const _proceedBtn=_isOwner?document.getElementById('bkashStep1')?.querySelector('.submit-btn'):null;
+  if(_proceedBtn){_proceedBtn.disabled=true;_proceedBtn.textContent='Placing order…';}
   const zone=document.querySelector('.delivery-opt.active .delivery-opt-name')?.textContent||'Inside Dhaka';
   if(confirmBtn){confirmBtn.disabled=true;confirmBtn.textContent='Placing order…';}
   const mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -2961,12 +2967,13 @@ async function submitOrder(){
   document.body.appendChild(waLink);waLink.click();document.body.removeChild(waLink);
 
   // ── TELEGRAM NOTIFICATION ──
-  const itemLines=cart.map((it,i)=>{
+  const itemLines=_orderItems.map((it,i)=>{
     if(it.type==='custom-poster') return`  ${i+1}. Custom Poster — ${it.sz}, ${it.lam} — ৳${it.unitPrice}`;
-    if(it.type==='polaroid-custom') return`  ${i+1}. Custom Polaroids x${it.qty} — ৳${it.unitPrice*it.qty}`;
+    if(it.type==='polaroid-custom'||it.type==='custom-polaroid') return`  ${i+1}. Custom Polaroids x${it.qty} — ৳${it.unitPrice*it.qty}`;
     return`  ${i+1}. ${it.name}${it.sz?' — '+it.sz:''}${it.lam?', '+it.lam:''} x${it.qty} — ৳${it.unitPrice*it.qty}`;
   }).join('\n');
 
+  const _dc=order.delivery.charge;
   const tgMsg=`🛍 <b>NEW ORDER</b>\n`+
     `━━━━━━━━━━━━━━\n`+
     `👤 <b>${name}</b>\n`+
@@ -2977,21 +2984,24 @@ async function submitOrder(){
     `━━━━━━━━━━━━━━\n`+
     `🛒 <b>Items:</b>\n${itemLines}\n`+
     `━━━━━━━━━━━━━━\n`+
-    `🚚 Delivery: ${zone} (+৳${deliveryCharge})\n`+
+    (_isOwner?`🔑 OWNER ORDER (no delivery charge)\n`:`🚚 Delivery: ${zone} (+৳${_dc})\n`)+
     `💰 <b>Grand Total: ৳${order.grandTotal}</b>\n`+
     `🕐 ${order.date}`;
 
   const tgOk = await sendTelegram(tgMsg);
   if(!tgOk){
-    // Telegram failed — roll back order save and re-enable button
+    // Telegram failed — roll back order save and restore UI
     orders.shift();
     ss('pl2_orders',orders);
-    if(confirmBtn){
-      confirmBtn.disabled=false;
-      confirmBtn.textContent='✓ CONFIRM ORDER';
+    // Re-enable whichever button is visible
+    if(_isOwner){
+      if(_proceedBtn){_proceedBtn.disabled=false;_proceedBtn.textContent='PROCEED TO PAYMENT →';}
+      toast('❌ Could not send order — check your connection and try again.');
+    } else {
+      if(confirmBtn){confirmBtn.disabled=false;confirmBtn.textContent='✓ CONFIRM ORDER';}
+      const trxMsgEl=document.getElementById('trxVerifyMsg');
+      if(trxMsgEl){trxMsgEl.style.color='#e11d48';trxMsgEl.textContent='❌ Could not send order — check your connection and try again.';}
     }
-    const trxMsgEl=document.getElementById('trxVerifyMsg');
-    if(trxMsgEl){trxMsgEl.style.color='#e11d48';trxMsgEl.textContent='❌ Could not send order — check your connection and try again.';}
     return;
   }
 
@@ -3018,6 +3028,17 @@ async function submitOrder(){
   updateCartCount(); syncCartToFb();
   if(!cart.length && _fbDb){_fbDb.ref('pl2/pl2_cart_'+_cartSessionId).remove();}
   ['custName','custPhone','custAddress','custNotes','custEmail'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  // Restore proceed button if owner bypass was used
+  if(_isOwner && _proceedBtn){_proceedBtn.disabled=false;_proceedBtn.textContent='PROCEED TO PAYMENT →';}
+  // Reset bKash step UI for next customer
+  const _s1=document.getElementById('bkashStep1');
+  const _s2=document.getElementById('bkashStep2');
+  if(_s1)_s1.style.display='block';
+  if(_s2)_s2.style.display='none';
+  const _trxInput=document.getElementById('bkashTrxId');
+  if(_trxInput)_trxInput.value='';
+  const _trxMsgFinal=document.getElementById('trxVerifyMsg');
+  if(_trxMsgFinal)_trxMsgFinal.textContent='';
   document.getElementById('modalFormWrap').style.display='none';
   document.getElementById('successState').classList.add('visible');
 }
