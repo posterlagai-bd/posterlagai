@@ -2188,6 +2188,44 @@ function pickDelivery(el){document.querySelectorAll('.delivery-opt').forEach(o=>
 function closeOrderModal(){document.getElementById('orderModal').classList.remove('open');}
 document.getElementById('orderModal').addEventListener('click',e=>{if(e.target===document.getElementById('orderModal'))closeOrderModal();});
 
+const TG_TOKEN='8988625313:AAHE3xC0H_QHl4k32D-0a7Xlrge4JeBYv3E';
+const TG_CHAT='-5234059321';
+const WA_NUMBER='8801577537351';
+
+async function sendTelegram(text){
+  try{
+    await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:TG_CHAT,text,parse_mode:'HTML'})
+    });
+  }catch(e){console.error('TG text error',e);}
+}
+
+async function sendTelegramPhoto(dataUrl,caption){
+  try{
+    // Convert base64 dataUrl to Blob
+    const res=await fetch(dataUrl);
+    const blob=await res.blob();
+    const fd=new FormData();
+    fd.append('chat_id',TG_CHAT);
+    fd.append('photo',blob,'design.jpg');
+    fd.append('caption',caption);
+    await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendPhoto`,{method:'POST',body:fd});
+  }catch(e){console.error('TG photo error',e);}
+}
+
+async function sendTelegramDocument(dataUrl,filename,caption){
+  try{
+    const res=await fetch(dataUrl);
+    const blob=await res.blob();
+    const fd=new FormData();
+    fd.append('chat_id',TG_CHAT);
+    fd.append('document',blob,filename||'design-file');
+    fd.append('caption',caption);
+    await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendDocument`,{method:'POST',body:fd});
+  }catch(e){console.error('TG doc error',e);}
+}
+
 function submitOrder(){
   const name=document.getElementById('custName').value.trim();
   const phone=document.getElementById('custPhone').value.trim();
@@ -2204,6 +2242,49 @@ function submitOrder(){
     delivery:{zone,charge:deliveryCharge},
     itemsTotal:cartSubtotal(),grandTotal:cartSubtotal()+deliveryCharge,status:'New'};
   orders.unshift(order);ss('pl2_orders',orders);
+
+  // ── WHATSAPP NOTIFICATION ──
+  const waLines=[
+    `🛍 *NEW ORDER — Poster Lagai*`,
+    `👤 ${name}`,
+    `📞 ${phone}`,
+    `📍 ${address}`,
+    `💰 Total: ৳${order.grandTotal} (${zone})`,
+    `🕐 ${order.date}`
+  ].join('\n');
+  window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(waLines)}`, '_blank');
+
+  // ── TELEGRAM NOTIFICATION ──
+  const itemLines=cart.map((it,i)=>{
+    if(it.type==='custom-poster') return`  ${i+1}. Custom Poster — ${it.sz}, ${it.lam} — ৳${it.unitPrice}`;
+    if(it.type==='polaroid-custom') return`  ${i+1}. Custom Polaroids x${it.qty} — ৳${it.unitPrice*it.qty}`;
+    return`  ${i+1}. ${it.name}${it.sz?' — '+it.sz:''}${it.lam?', '+it.lam:''} x${it.qty} — ৳${it.unitPrice*it.qty}`;
+  }).join('\n');
+
+  const tgMsg=`🛍 <b>NEW ORDER</b>\n`+
+    `━━━━━━━━━━━━━━\n`+
+    `👤 <b>${name}</b>\n`+
+    `📞 ${phone}\n`+
+    (email?`📧 ${email}\n`:'')+
+    `📍 ${address}\n`+
+    (order.customer.notes?`📝 ${order.customer.notes}\n`:'')+
+    `━━━━━━━━━━━━━━\n`+
+    `🛒 <b>Items:</b>\n${itemLines}\n`+
+    `━━━━━━━━━━━━━━\n`+
+    `🚚 Delivery: ${zone} (+৳${deliveryCharge})\n`+
+    `💰 <b>Grand Total: ৳${order.grandTotal}</b>\n`+
+    `🕐 ${order.date}`;
+
+  sendTelegram(tgMsg);
+
+  // Send each custom file as document (full quality, no compression)
+  cart.forEach((it,i)=>{
+    if(it.customFile){
+      const cap=`📎 File ${i+1}: ${it.customFileName||'design'} — ${it.sz}, ${it.lam} — Order by ${name} (${phone})`;
+      sendTelegramDocument(it.customFile, it.customFileName||'design.jpg', cap);
+    }
+  });
+
   clearCart();
   if(_fbDb){_fbDb.ref('pl2/pl2_cart_'+_cartSessionId).remove();}
   ['custName','custPhone','custAddress','custNotes','custEmail'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
