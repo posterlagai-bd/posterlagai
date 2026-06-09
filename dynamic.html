@@ -70,6 +70,10 @@
             if (key.indexOf('iep_') === 0 && typeof restoreInlineEdits === 'function') {
               restoreInlineEdits();
             }
+            // Re-render whichever admin section is currently visible
+            if (typeof _fbAdminRefreshKey === 'function') {
+              _fbAdminRefreshKey(key);
+            }
           }
         });
       });
@@ -2087,7 +2091,29 @@ function goAdmin(){
   document.getElementById('layerStore').style.display='none';
   document.getElementById('layerLogin').style.display='none';
   document.getElementById('layerCategory').style.display='none';
+  // Always re-read from localStorage (may have been updated by Firebase while on another page)
+  cats=gs('pl2_cats',DEF_CATS);
+  posters=gs('pl2_posters',DEF_POSTERS);
+  polaroids=gs('pl2_pols',DEF_POLS);
+  magazines=gs('pl2_mags',DEF_MAGS);
+  reviews=gs('pl2_revs',DEF_REVS);
+  orders=gs('pl2_orders',[]);
   refreshAdmin();
+  // If Firebase is connected, re-render again once it finishes its initial fetch
+  // (covers the case where the admin is opened before Firebase sync completes)
+  if(_fbDb){
+    var _fbRetries = 0;
+    var _fbRetryInterval = setInterval(function(){
+      _fbRetries++;
+      var freshCats = gs('pl2_cats', DEF_CATS);
+      // Check if Firebase brought us real data (more than default or same length changed)
+      cats = freshCats;
+      posters = gs('pl2_posters', DEF_POSTERS);
+      renderAdminCats();
+      updateDash();
+      if(_fbRetries >= 4) clearInterval(_fbRetryInterval);
+    }, 600);
+  }
 }
 function goAdminStore(){
   window._adminMode=true;
@@ -3056,9 +3082,49 @@ function showAdminPage(id){
   document.querySelectorAll('.admin-page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+id)?.classList.add('active');
   document.querySelectorAll('.admin-nav li a').forEach(a=>a.classList.toggle('active',a.getAttribute('onclick')?.includes("'"+id+"'")));
+  // Always re-read fresh data from localStorage before rendering
+  cats=gs('pl2_cats',DEF_CATS);
+  posters=gs('pl2_posters',DEF_POSTERS);
+  polaroids=gs('pl2_pols',DEF_POLS);
+  magazines=gs('pl2_mags',DEF_MAGS);
+  reviews=gs('pl2_revs',DEF_REVS);
+  orders=gs('pl2_orders',[]);
+  PRICES=gs('pl2_pr',DEF_PR);
   ({dashboard:updateDash,categories:renderAdminCats,polaroids:renderAdminPols,magazines:renderAdminMags,hero:renderHeroAdmin,prices:loadPrices,reviews:renderAdminRevs,orders:renderAdminOrders})[id]?.();
 }
 function refreshAdmin(){updateDash();renderAdminCats();loadPrices();}
+
+// ── FIREBASE LIVE RE-RENDER ──
+// Called whenever Firebase pushes a data update to localStorage.
+// Checks which admin page is currently active and re-renders it so changes
+// appear instantly without a manual page reload.
+function _fbAdminRefreshKey(key){
+  var adminLayer = document.getElementById('layerAdmin');
+  if(!adminLayer || adminLayer.style.display === 'none') return;
+  var activePage = document.querySelector('.admin-page.active');
+  if(!activePage) return;
+  var pid = activePage.id; // e.g. 'page-categories'
+  if((key==='pl2_cats'||key==='pl2_posters') && pid==='page-categories'){
+    cats = (function(){try{var v=localStorage.getItem('pl2_cats');return v!==null?JSON.parse(v):DEF_CATS;}catch(e){return DEF_CATS;}})();
+    posters = (function(){try{var v=localStorage.getItem('pl2_posters');return v!==null?JSON.parse(v):DEF_POSTERS;}catch(e){return DEF_POSTERS;}})();
+    renderAdminCats();
+  } else if(key==='pl2_cats'||key==='pl2_posters') {
+    // also refresh storefront category grid if store is open
+    var storeLayer = document.getElementById('layerStore');
+    if(storeLayer && storeLayer.style.display !== 'none'){
+      cats = (function(){try{var v=localStorage.getItem('pl2_cats');return v!==null?JSON.parse(v):DEF_CATS;}catch(e){return DEF_CATS;}})();
+      posters = (function(){try{var v=localStorage.getItem('pl2_posters');return v!==null?JSON.parse(v):DEF_POSTERS;}catch(e){return DEF_POSTERS;}})();
+      renderCategories();
+    }
+  }
+  if(key==='pl2_pols' && pid==='page-polaroids') renderAdminPols && renderAdminPols();
+  if(key==='pl2_mags' && pid==='page-magazines') renderAdminMags && renderAdminMags();
+  if(key==='pl2_revs' && pid==='page-reviews') renderAdminRevs && renderAdminRevs();
+  if(key==='pl2_orders' && pid==='page-orders') renderAdminOrders && renderAdminOrders();
+  if(key==='pl2_pr' && pid==='page-prices') loadPrices && loadPrices();
+  // Always keep dashboard stats fresh
+  if(pid==='page-dashboard') updateDash && updateDash();
+}
 function updateDash(){
   PRICES=gs('pl2_pr',DEF_PR);cats=gs('pl2_cats',DEF_CATS);posters=gs('pl2_posters',DEF_POSTERS);polaroids=gs('pl2_pols',DEF_POLS);reviews=gs('pl2_revs',DEF_REVS);orders=gs('pl2_orders',[]);
   document.getElementById('dash-cat').textContent=cats.length;
