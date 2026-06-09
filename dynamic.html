@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poster Lagai</title>
 <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAEpElEQVR42tXXa4hd1RkG4GedM5PxkguajEk0IYNRajpNreKtattQWwiIl6i1rUpvFiz+UUM0Qa0JKF76wyK2KmiDDcHLqKgoams0Ni1itWilVJhgHasxMZgYkxhN5pyzP3+sdfAwxGQMxtIFm73POmvv9/1u77cW/88jqAX1/xV4aj8vzkRqXxpgGyyYGXyrY77eue4LBx/IAPUyd8AqXrue2MzyYPZei3O5j++YG/MWK/sJNL5C/J4dLW4LxpbcSOWqt5/3BLxt7ZkvsGYbNwR961j+/QI+gRhDE637iBbXtkmO/F7aQ8uPXsZWxDHEE2xbksFbiFOJIeJ+WufQuI6tQV95tze4PJgRHGy0nuhw34SneHMK8QiNk7OlsZrWHwqhGjGTeJA4i8ZcIrg4OP1+3llFvMHrr/LXng7DRuv6U84nemi+TZxH9FEF8UdiCdXNVIgzqPqoDqG6h01D7Cheax5InJ+JndH5/V0R6IImV30zAzQQ04l7iDXEuByGuDrnQFxETCH6idOIt4n9qaYTx7O9j1jHizEazVhcFrzM45MyUPM7xENUBxcii6jmEAdmD8V8YipxL3Ex1TVUM4kf0VpNPMNzwTfaFdLG6tpZ/FN284TbOWEDVY3aiVhFOk7Opv1Jd+I2Yj3ewUTSMgyRFmIarUHqh7P0SC78+NPvRxuvtgvh6Z7NlsOoVVSPYp+cgJ7HK5iP35KeJK0jTcKaTMSPMZvYiG0MFfAxneA7JdBekNhwMicMsPLr1F8jDkUPunEa8RiOxG/wPsbiu8R7+AmGsS5752uwJOfTqLtc2sS8YFGwop/mubQiZ3O8TDydhSd2dCTlV4kLqM4m/kzz2bx+IDL32mh1oKvcf3kL8RSvb2D4DqpNxM+JuwuR4XJ/ghibwWN9mQvicap5NP/J6mByGtHYdqcD3z6rKN45xH8KSHe57igg/yhVsZRqsJTi94pnfk2zlon8PehaPEohasvwrCtoJap9qd4gLiP+VsrxTOKS4nrEL6jGE8cSvcTPiIdpLiW28mhR19ouk/BTDmDDRD4M0gyMw2RciS1ZneIWXFVK81jSw8QC7IcPcSsuzFUzvTPJd0egPT6YzEYZONZgUSHQi+NIk/FTzMJzuJ20PFusP1dNjMd0XkrEyhEyvFMChWUaQ2MK6xUNmIV9cQFpCCvK+vMwiLUlGefRqpdwbMTh6ONfMGcEVtdnmf4Dag/Qmsq7Kbs4erAgWxObSVvwQ1xetGEf0qG4mq7AXTQ+LiqKf48I767HykJuLbf25l6wfQHNU2hOoflI6YqDJdt/Vbrhn9j8X5Y/y/NPE9OoFvJRcIjRtuNOLRjmmrml7NrZXicWE/fRHE/1aq6ARm8m9bv2Fi64aX4u18GO0k6jCkHbVd28cDMrPqCq092kNkyaRv+lTNxCHEWrG1NJbzJugPocPvoLC7dx0HaOSLQGqKesK3s+kmxKMON9ll5f9gFo3EAzOL6w7y4b0kmRe5M9OjsEqajXyKv9/0mvsOJGYm0ue1/KaSmoDRSgrvz73OCgkVvwnanf3jg3pM8Rwb1GZLfHsrlzD+uxt8+Qn3d8AmpgLn/liySzAAAAAElFTkSuQmCC"/>
 <!-- Firebase Compat SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -131,9 +134,6 @@
     }
   };
 </script>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Poster Lagai</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--black:#0a0a0a;--red:#cc1100;--red-dark:#8b0000;--red-light:#ff2200;--white:#fff;--grey:#1a1a1a;--grey-mid:#2a2a2a;--border:#2e2e2e;--wa:#25D366;--wa-dark:#128C7E;}
@@ -2566,7 +2566,7 @@ function cpAddToCart(){
 }
 
 // ── POLAROID ──
-var cpolFiles=[];// [{name,dataUrl}]
+// cpolFiles already declared above
 function cpolFilesChosen(input){
   const files=Array.from(input.files);if(!files.length)return;
   input.value=''; // reset so same photo can be picked again
@@ -3252,12 +3252,16 @@ function deleteMag(id){
 }
 
 // PRICES
+// Helper: onerror fallbacks to avoid quote-nesting issues in innerHTML strings
+function _comboImgErr(img){img.parentNode.innerHTML='<div class="combo-poster-label">FULL<br>WALL</div>';}
+function _gridImgErr(img){img.parentNode.style.background='#1a1a1a';}
+
 function renderComboArt(){
   var wall = document.getElementById('comboWall');
   if(!wall) return;
   var customImg = PRICES.combo_img || '';
   if(customImg){
-    wall.innerHTML = '<img src="'+customImg+'" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentNode.innerHTML='<div class=\'combo-poster-label\'>FULL<br>WALL</div>'">';
+    wall.innerHTML = '<img src="'+customImg+'" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="_comboImgErr(this)">';
     return;
   }
   // Build collage from real poster images
@@ -3273,7 +3277,7 @@ function renderComboArt(){
   var cols = picks.length >= 4 ? 2 : 1;
   var grid = '<div style="display:grid;grid-template-columns:repeat('+cols+',1fr);gap:3px;width:100%;height:100%;">';
   picks.forEach(function(src){
-    grid += '<div style="overflow:hidden;"><img src="'+src+'" style="width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.85);" onerror="this.parentNode.style.background='#1a1a1a'"></div>';
+    grid += '<div style="overflow:hidden;"><img src="'+src+'" style="width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.85);" onerror="_gridImgErr(this)"></div>';
   });
   grid += '</div>';
   wall.innerHTML = grid;
@@ -3544,7 +3548,7 @@ function clearHeroPanel(n){
   if(!window._adminMode) return;
   _lsSet('pl2_hero' + n, '');
   localStorage.removeItem('pl2_hero' + n);
-  _fbDb.ref('pl2/pl2_hero' + n).remove();
+  if(_fbDb) _fbDb.ref('pl2/pl2_hero' + n).remove();
   applyHeroPanel(n, null);
   renderHeroAdminPreview(n, null);
   toast('Panel ' + n + ' cleared');
@@ -3565,7 +3569,7 @@ function loadHeroPanels(){
     if(data){ try{ applyHeroPanel(n, data); }catch(e){} }
     else {
       // Also try Firebase directly in case localStorage is stale/empty
-      _fbDb.ref('pl2/pl2_hero' + n).once('value', function(snap){
+      if(_fbDb) _fbDb.ref('pl2/pl2_hero' + n).once('value', function(snap){
         var val = snap.val();
         if(val){ _lsSet('pl2_hero' + n, val); applyHeroPanel(n, val); }
       });
