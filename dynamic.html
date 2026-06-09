@@ -3430,8 +3430,10 @@ function addComboImgs(input){
       PRICES.combo_imgs.push(e.target.result);
       done++;
       if(done === files.length){
+        ss('pl2_pr', PRICES);
         _renderComboImgGrid();
-        toast(files.length + ' image'+(files.length>1?'s':'')+' added — click Save All to apply.');
+        renderComboArt();
+        toast(files.length + ' image'+(files.length>1?'s':'')+' added and saved!');
       }
     };
     r.readAsDataURL(f);
@@ -3441,7 +3443,9 @@ function addComboImgs(input){
 function removeComboImg(i){
   if(!Array.isArray(PRICES.combo_imgs)) return;
   PRICES.combo_imgs.splice(i, 1);
+  ss('pl2_pr', PRICES);
   _renderComboImgGrid();
+  renderComboArt();
 }
 
 // Inline storefront editor for combo images (admin edit bar)
