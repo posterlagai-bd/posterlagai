@@ -55,6 +55,63 @@
     });
   }
 </script>
+<!-- Firestore for Order Manager sync -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  const _omApp = initializeApp({
+    apiKey: "AIzaSyDKuiCC6kid39Gm7D_E2kp1kmPyg-XP2w0",
+    authDomain: "posterlagai-62d14.firebaseapp.com",
+    projectId: "posterlagai-62d14",
+    storageBucket: "posterlagai-62d14.firebasestorage.app",
+    messagingSenderId: "89643241607",
+    appId: "1:89643241607:web:a5869fddf2d2411ed4e822"
+  }, "orderManager");
+  const _omDb = getFirestore(_omApp);
+  window.__pushToOrderManager = async function(order) {
+    try {
+      // Map dynamic.html order → index.html Order Manager schema
+      const items = (order.items || []);
+      const products = items.map(it => ({
+        id: String(it.id || Math.random()),
+        name: it.name || (it.type === 'custom-poster' ? 'Custom Poster' : 'Item'),
+        qty: String(it.qty || 1),
+        unitPrice: String(it.unitPrice || 0),
+        cost: "",
+        manualTotal: ""
+      }));
+      const omOrder = {
+        id: String(order.id),
+        seq: order.id,
+        clientName: order.customer?.name || "",
+        phone: order.customer?.phone || "",
+        address: order.customer?.address || "",
+        orderDate: new Date().toISOString().slice(0,10),
+        deliveryDate: "",
+        printDate: "",
+        printDaysBefore: "",
+        status: "Talking",
+        products: products,
+        notes: [
+          order.customer?.notes || "",
+          order.customer?.email ? "Email: " + order.customer.email : "",
+          "Zone: " + (order.delivery?.zone || ""),
+          "Source: Website Checkout"
+        ].filter(Boolean).join(" | "),
+        deliveryCharge: String(order.delivery?.charge || 0),
+        actualDC: "",
+        deliveryPaid: false,
+        paymentMethod: "COD",
+        invoiceNum: "PL-WEB-" + String(order.id).slice(-5),
+        source: "website"
+      };
+      await setDoc(doc(collection(_omDb, "orders"), omOrder.id), omOrder);
+      console.log("[Order Manager] Order synced:", omOrder.id);
+    } catch(e) {
+      console.warn("[Order Manager] Sync failed:", e);
+    }
+  };
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Poster Lagai</title>
@@ -1447,6 +1504,15 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
           </div>
         </div>
 
+        <!-- Bulk action bar -->
+        <div class="orders-bulk-bar" id="ordersBulkBar" style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;padding:.6rem .8rem;background:#1a1a1a;border:1px solid #333;border-radius:6px;">
+          <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.8rem;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.08em;">
+            <input type="checkbox" id="selectAllOrders" onchange="toggleSelectAllOrders(this)" style="width:16px;height:16px;cursor:pointer;accent-color:#e11d48;">
+            <span>Select All</span>
+          </label>
+          <button class="btn-red" id="deleteSelectedBtn" onclick="deleteSelectedOrders()" style="display:none;font-size:.68rem;padding:.45rem .9rem;">🗑 Delete Selected (<span id="selectedCount">0</span>)</button>
+        </div>
+
         <div id="adminOrderList"></div>
 
         <!-- ── LIVE CARTS ── -->
@@ -2268,6 +2334,17 @@ async function submitOrder(){
   }));
   orders.unshift(orderToSave);ss('pl2_orders',orders);
 
+  // ── SYNC TO ORDER MANAGER (index.html / Firestore) ──
+  if(typeof window.__pushToOrderManager === 'function'){
+    window.__pushToOrderManager(orderToSave);
+  } else {
+    // Module may not be ready yet — retry once after a short delay
+    setTimeout(()=>{
+      if(typeof window.__pushToOrderManager === 'function')
+        window.__pushToOrderManager(orderToSave);
+    }, 2000);
+  }
+
   // ── WHATSAPP NOTIFICATION ──
   const waLines=[
     `🛍 *NEW ORDER — Poster Lagai*`,
@@ -2641,17 +2718,20 @@ function renderAdminOrders(){
   wrap.innerHTML=filtered.map(o=>{
     const c=o.customer||{};
     const isDone=o.status==='Done';
-    return`<div class="order-card${isDone?' status-done':''}">
+    return`<div class="order-card${isDone?' status-done':''}" data-order-id="${o.id}">
       <!-- Head: name + totals -->
       <div class="order-card-head">
-        <div>
+        <div style="display:flex;align-items:flex-start;gap:.7rem;">
+          <input type="checkbox" class="order-select-cb" data-id="${o.id}" onchange="updateBulkBar()" style="width:17px;height:17px;margin-top:4px;flex-shrink:0;cursor:pointer;accent-color:#e11d48;">
+          <div>
           <div class="ocust-name">${esc(c.name||'Unknown Customer')}</div>
           <div class="ocust-meta">
             <span>📅 ${o.date||'—'}</span>
             ${c.phone?`<span>📞 <a href="tel:${c.phone}" style="color:inherit;text-decoration:none;">${c.phone}</a></span>`:''}
             ${c.email?`<span>✉️ <a href="mailto:${c.email}" style="color:inherit;text-decoration:none;">${c.email}</a></span>`:''}
           </div>
-        </div>
+          </div><!-- end name+meta -->
+        </div><!-- end flex wrapper -->
         <div class="order-total-col">
           <div class="order-grand">৳${o.grandTotal||0}</div>
           <div class="order-delivery-note">${o.delivery?.zone||'—'} · delivery ৳${o.delivery?.charge||0}</div>
@@ -2696,6 +2776,38 @@ function renderAdminOrders(){
   }).join('');
 
   renderLiveCarts();
+  updateBulkBar();
+}
+
+function updateBulkBar(){
+  const cbs=document.querySelectorAll('.order-select-cb');
+  const checked=document.querySelectorAll('.order-select-cb:checked');
+  const btn=document.getElementById('deleteSelectedBtn');
+  const countEl=document.getElementById('selectedCount');
+  const selectAll=document.getElementById('selectAllOrders');
+  if(btn){btn.style.display=checked.length?'inline-flex':'none';}
+  if(countEl){countEl.textContent=checked.length;}
+  if(selectAll){
+    selectAll.indeterminate=checked.length>0&&checked.length<cbs.length;
+    selectAll.checked=cbs.length>0&&checked.length===cbs.length;
+  }
+}
+
+function toggleSelectAllOrders(cb){
+  document.querySelectorAll('.order-select-cb').forEach(c=>c.checked=cb.checked);
+  updateBulkBar();
+}
+
+function deleteSelectedOrders(){
+  const checked=document.querySelectorAll('.order-select-cb:checked');
+  if(!checked.length)return;
+  if(!confirm(`Delete ${checked.length} selected order(s)?`))return;
+  const ids=new Set([...checked].map(c=>Number(c.dataset.id)));
+  orders=orders.filter(o=>!ids.has(o.id));
+  ss('pl2_orders',orders);
+  renderAdminOrders();
+  updateDash();
+  toast(`${ids.size} order(s) deleted`);
 }
 
 function toggleOrderStatus(id){const o=orders.find(x=>x.id===id);if(!o)return;o.status=o.status==='Done'?'New':'Done';ss('pl2_orders',orders);renderAdminOrders();toast('Status updated');}
