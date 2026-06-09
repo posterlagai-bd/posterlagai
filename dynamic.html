@@ -96,11 +96,12 @@
           order.customer?.notes || "",
           order.customer?.email ? "Email: " + order.customer.email : "",
           "Zone: " + (order.delivery?.zone || ""),
-          "Source: Website Checkout"
+          "bKash TrxID: " + (order.bkashTrxId || ""),
+          "Source: 🌐 Website Checkout"
         ].filter(Boolean).join(" | "),
         deliveryCharge: String(order.delivery?.charge || 0),
         actualDC: "",
-        deliveryPaid: false,
+        deliveryPaid: true,
         paymentMethod: "COD",
         invoiceNum: "PL-WEB-" + String(order.id).slice(-5),
         source: "website"
