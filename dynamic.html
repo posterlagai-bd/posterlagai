@@ -2752,18 +2752,19 @@ function savePrices(){
   PRICES={a5:+document.getElementById('pr-a5').value,a4:+document.getElementById('pr-a4').value,a3:+document.getElementById('pr-a3').value,pol:+document.getElementById('pr-pol').value,m8:+document.getElementById('pr-m8').value,m12:+document.getElementById('pr-m12').value,m16:+document.getElementById('pr-m16').value,combo:+document.getElementById('pr-combo').value,dd:+document.getElementById('pr-dd').value,dout:+document.getElementById('pr-do').value};
   ss('pl2_pr',PRICES);
   document.getElementById('storeComboPrice').textContent=PRICES.combo;
-  renderMagazines();toast('Prices saved!');
+  renderMagazines();
 }
 function savePricesWithFeedback(){
-  savePrices();
   var btn=document.getElementById('savePricesBtn');
   if(!btn) return;
-  btn.textContent='✓ Saved!';
   btn.setAttribute('style','font-family:\'Poppins\',sans-serif;font-weight:700;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#000;background:#22c55e;border:none;padding:.7rem 1.5rem;cursor:pointer;');
   btn.textContent='✓ Saved!';
+  savePrices();
   setTimeout(function(){
-    btn.setAttribute('style','font-family:\'Poppins\',sans-serif;font-weight:700;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#000;background:#cc1100;border:none;padding:.7rem 1.5rem;cursor:pointer;');
-    btn.textContent='Save All';
+    var b=document.getElementById('savePricesBtn');
+    if(!b) return;
+    b.setAttribute('style','font-family:\'Poppins\',sans-serif;font-weight:700;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#000;background:#cc1100;border:none;padding:.7rem 1.5rem;cursor:pointer;');
+    b.textContent='Save All';
   }, 3000);
 }
 
