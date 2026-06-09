@@ -1474,7 +1474,7 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
 
       <!-- PRICES -->
       <div class="admin-page" id="page-prices">
-        <div class="admin-header"><div><div class="admin-page-title">PRICES</div></div><button class="btn-red" id="savePricesBtn" onclick="savePricesWithFeedback()" style="position:relative;z-index:10;cursor:pointer;">Save All</button></div>
+        <div class="admin-header"><div><div class="admin-page-title">PRICES</div></div><button id="savePricesBtn" onclick="savePricesWithFeedback()" style="font-family:'Poppins',sans-serif;font-weight:700;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#000;background:#cc1100;border:none;padding:.7rem 1.5rem;cursor:pointer;">Save All</button></div>
         <div class="a-card"><div class="a-card-title">Poster Sizes</div>
           <table class="price-table"><thead><tr><th>Size</th><th>Price (৳)</th></tr></thead><tbody>
             <tr><td>A5</td><td><input class="price-input" id="pr-a5" type="number" min="0"></td></tr>
@@ -2759,11 +2759,12 @@ function savePricesWithFeedback(){
   var btn=document.getElementById('savePricesBtn');
   if(!btn) return;
   btn.textContent='✓ Saved!';
-  btn.setAttribute('style','position:relative;z-index:10;cursor:pointer;background:#22c55e !important;border-color:#22c55e !important;color:#000 !important;');
+  btn.setAttribute('style','font-family:\'Poppins\',sans-serif;font-weight:700;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#000;background:#22c55e;border:none;padding:.7rem 1.5rem;cursor:pointer;');
+  btn.textContent='✓ Saved!';
   setTimeout(function(){
-    btn.setAttribute('style','position:relative;z-index:10;cursor:pointer;');
+    btn.setAttribute('style','font-family:\'Poppins\',sans-serif;font-weight:700;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#000;background:#cc1100;border:none;padding:.7rem 1.5rem;cursor:pointer;');
     btn.textContent='Save All';
-  }, 2000);
+  }, 3000);
 }
 
 // REVIEWS ADMIN
