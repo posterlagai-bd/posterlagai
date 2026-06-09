@@ -2029,19 +2029,11 @@ const gs=(k,d)=>{try{const v=localStorage.getItem(k);return v!==null?JSON.parse(
 const ss=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}};
 
 // ── DEFAULT DATA ──
-const DEF_CATS=[
-  {id:1,name:'Retro Vibes',img:'https://images.unsplash.com/photo-1578321272176-b7bbc0679853?w=600&q=80'},
-  {id:2,name:'Music Icons',img:'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80'},
-  {id:3,name:'Cinema',img:'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=600&q=80'},
-  {id:4,name:'Abstract',img:'https://images.unsplash.com/photo-1541960071727-c531398e7836?w=600&q=80'},
-];
+const DEF_CATS=[];
 const DEF_POSTERS=[];
 const DEF_POLS=[];
 const DEF_MAGS=[];
-const DEF_REVS=[
-  {id:401,name:'Tahmid R.',product:'A3 Retro Poster',stars:5,text:'Absolutely stunning quality. Colours popped exactly like the preview.',date:'12 May 2024'},
-  {id:402,name:'Nusrat J.',product:'Polaroid Pack x10',stars:5,text:'Got 10 polaroids for my room — ৳5 each is insane value.',date:'8 May 2024'},
-];
+const DEF_REVS=[];
 const DEF_PR={a5:20,a4:35,a3:65,pol:5,m8:350,m12:550,m16:700,combo:499,dd:70,dout:130,combo_img:'',combo_imgs:[]};
 
 let cats=gs('pl2_cats',DEF_CATS);
@@ -2053,6 +2045,23 @@ let orders=gs('pl2_orders',[]);
 let PRICES=gs('pl2_pr',DEF_PR);
 let nid=gs('pl2_nid',500);
 let cart=[];
+
+// ── ONE-TIME MIGRATION: clear preset Unsplash demo data ──
+(function(){
+  var _migKey = 'pl2_migrated_v2';
+  if(localStorage.getItem(_migKey)) return;
+  var _presetImgs = [
+    'photo-1578321272176','photo-1493225457124','photo-1536440136628','photo-1541960071727'
+  ];
+  var _presetRevIds = [401, 402];
+  // Strip any cats that only have Unsplash preset images
+  cats = cats.filter(function(c){ return !_presetImgs.some(function(p){ return (c.img||'').includes(p); }); });
+  // Strip preset reviews
+  reviews = reviews.filter(function(r){ return _presetRevIds.indexOf(r.id) === -1; });
+  ss('pl2_cats', cats);
+  ss('pl2_revs', reviews);
+  localStorage.setItem(_migKey, '1');
+})();
 
 const ADMIN_PW='169691';
 
@@ -2263,7 +2272,10 @@ function renderStore(){
 
 function renderCategories(){
   const grid=document.getElementById('categoryGrid');
-  if(!cats.length){grid.innerHTML='<div style="padding:2rem;opacity:.4;">No categories yet. Add them in Admin.</div>';return;}
+  if(!cats.length){
+    grid.innerHTML=[0,1,2].map(()=>`<div class="cat-card" style="pointer-events:none;"><div class="cat-carousel-wrap"><div style="position:absolute;inset:0;background:linear-gradient(160deg,#1a1a1a,#111);display:flex;align-items:center;justify-content:center;"><div style="width:48px;height:48px;border:2px dashed #333;border-radius:50%;"></div></div></div></div>`).join('');
+    return;
+  }
   grid.innerHTML=cats.map(cat=>{
     const catPosters=posters.filter(p=>p.catId===cat.id);
     // collect all images from all posters in this category for the carousel
@@ -2324,6 +2336,13 @@ function renderPolaroidCarousel(){
   const track=document.getElementById('polTrack');
   const dotsWrap=document.getElementById('polDots');
   if(!track) return;
+  if(!polaroids.length){
+    track.innerHTML=[0,1,2].map(()=>`<div class="pol-slide"><div class="polaroid-card" style="pointer-events:none;"><div style="width:100%;aspect-ratio:3/4;background:linear-gradient(160deg,#1a1a1a,#111);border:1px solid #222;display:flex;align-items:center;justify-content:center;"><div style="width:40px;height:40px;border:2px dashed #333;border-radius:50%;"></div></div><div class="polaroid-label" style="opacity:.2;">—</div></div></div>`).join('');
+    if(dotsWrap) dotsWrap.innerHTML='';
+    polIdx=0;
+    if(polTimer){clearInterval(polTimer);polTimer=null;}
+    return;
+  }
   track.innerHTML=polaroids.map(p=>`
     <div class="pol-slide">
       <div class="polaroid-card" style="position:relative;">
@@ -2352,6 +2371,10 @@ function polGoTo(i){
 // ── MAGAZINES ──
 function renderMagazines(){
   const PR=gs('pl2_pr',DEF_PR);
+  if(!magazines.length){
+    document.getElementById('magazineGrid').innerHTML=[0,1,2].map(()=>`<div class="mag-card" style="pointer-events:none;"><div class="mag-img-wrap"><div class="mag-spine"></div><div style="width:100%;aspect-ratio:.7;background:linear-gradient(160deg,#1a1a1a,#111);display:flex;align-items:center;justify-content:center;"><div style="width:40px;height:40px;border:2px dashed #333;border-radius:50%;"></div></div></div><div class="mag-info"><div class="mag-name" style="opacity:.2;">—</div><div class="mag-desc" style="opacity:.15;">—</div></div></div>`).join('');
+    return;
+  }
   document.getElementById('magazineGrid').innerHTML=magazines.map(m=>`
     <div class="mag-card" style="position:relative;">
       ${window._adminMode?`<button class="ie-prod-edit-btn" onclick="event.stopPropagation();openMagEditPopover(event,${m.id})">✏️ Edit</button>`:''}
@@ -3295,7 +3318,7 @@ function deleteMag(id){
 
 // PRICES
 // Helper: onerror fallbacks to avoid quote-nesting issues in innerHTML strings
-function _comboImgErr(img){img.parentNode.innerHTML='<div class="combo-poster-label">FULL<br>WALL</div>';}
+function _comboImgErr(img){img.parentNode.innerHTML='<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#1a1a1a,#111);"><div style="width:64px;height:64px;border:2px dashed #333;border-radius:50%;"></div></div>';}
 function _gridImgErr(img){img.parentNode.style.background='#1a1a1a';}
 
 var _comboSlideIdx = 0;
@@ -3316,7 +3339,7 @@ function renderComboArt(){
     // Auto-collage from real poster images
     posters.forEach(function(p){ if(p.imgs && p.imgs.length) imgs.push(p.imgs[0]); });
     if(!imgs.length){
-      wall.innerHTML = '<div class="combo-poster-label">FULL<br>WALL</div>';
+      wall.innerHTML = '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#1a1a1a,#111);"><div style="width:64px;height:64px;border:2px dashed #333;border-radius:50%;"></div></div>';
       _comboStopSlide();
       return;
     }
