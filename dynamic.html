@@ -2842,6 +2842,9 @@ function showBkashPayStep(){
   const address=document.getElementById('custAddress').value.trim();
   if(!name||!phone||!address){alert('Please fill in Name, Phone and Address first.');return;}
   if(!/^[0-9+\-\s]{7,15}$/.test(phone)){alert('Please enter a valid phone number.');return;}
+  // Owner bypass — skip bKash step entirely and place order directly
+  const _isOwner=phone.replace(/[\s\-+]/g,'')===('16969696969');
+  if(_isOwner){submitOrder();return;}
   document.getElementById('bkashAmountDisplay').textContent='৳'+deliveryCharge;
   document.getElementById('bkashStep1').style.display='none';
   document.getElementById('bkashStep2').style.display='block';
