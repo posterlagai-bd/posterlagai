@@ -2226,7 +2226,7 @@ async function sendTelegramDocument(dataUrl,filename,caption){
   }catch(e){console.error('TG doc error',e);}
 }
 
-function submitOrder(){
+async function submitOrder(){
   const name=document.getElementById('custName').value.trim();
   const phone=document.getElementById('custPhone').value.trim();
   const address=document.getElementById('custAddress').value.trim();
@@ -2241,7 +2241,32 @@ function submitOrder(){
     items:JSON.parse(JSON.stringify(cart)),
     delivery:{zone,charge:deliveryCharge},
     itemsTotal:cartSubtotal(),grandTotal:cartSubtotal()+deliveryCharge,status:'New'};
-  orders.unshift(order);ss('pl2_orders',orders);
+  // Strip raw file data before saving to storage (files already sent to Telegram)
+  // But keep a small thumbnail for admin display
+  const orderToSave=JSON.parse(JSON.stringify(order));
+  orderToSave.items=await Promise.all(orderToSave.items.map(async it=>{
+    const clean={...it};
+    if(it.customFile){
+      // Make a small 120×150 thumbnail for admin preview
+      try{
+        const thumb=await new Promise(res=>{
+          const img=new Image();
+          img.onload=()=>{
+            const c=document.createElement('canvas');
+            c.width=120;c.height=150;
+            const ctx=c.getContext('2d');
+            ctx.drawImage(img,0,0,120,150);
+            res(c.toDataURL('image/jpeg',0.7));
+          };
+          img.src=it.customFile;
+        });
+        clean.img=thumb; // small thumb for admin
+      }catch(e){}
+      delete clean.customFile; // remove full-res
+    }
+    return clean;
+  }));
+  orders.unshift(orderToSave);ss('pl2_orders',orders);
 
   // ── WHATSAPP NOTIFICATION ──
   const waLines=[
@@ -2653,6 +2678,7 @@ function renderAdminOrders(){
               <div class="oic-name">${esc(i.name)}</div>
               <div class="oic-meta">${i.sz?i.sz+' · '+i.lam:''}${i.package?i.package:''}</div>
               <div class="oic-meta">Qty: ${i.qty}</div>
+              ${i.type==='custom-poster'?`<div class="oic-meta" style="color:#22c55e;">📨 File → Telegram</div>`:''}
               <div class="oic-price">৳${i.unitPrice*i.qty}</div>
             </div>
           </div>`).join('')}
@@ -2712,9 +2738,22 @@ function renderLiveCarts(){
       if(!items||!items.length) return '';
       const total=items.reduce((s,i)=>s+(i.unitPrice*i.qty),0);
       const sessionId=k.replace('pl2_cart_','');
+      const chips=items.map(i=>{
+        const hasImg=i.img&&i.img.startsWith('data:');
+        const imgHtml=hasImg?`<img src="${i.img}" style="width:36px;height:46px;object-fit:cover;border:1px solid #333;flex-shrink:0;">`:'' ;
+        const dlHtml=i.customFile?`<a href="${i.customFile}" download="${i.customFileName||'design'}" style="font-size:.58rem;color:var(--red);text-decoration:none;display:block;margin-top:.2rem;">⬇ Download file</a>`:'';
+        return`<div style="display:flex;gap:.5rem;align-items:flex-start;background:#111;border:1px solid #2a2a2a;padding:.4rem .6rem;">
+          ${imgHtml}
+          <div>
+            <div style="font-size:.72rem;">${i.qty}× ${esc(i.name)}${i.sz?' ('+i.sz+')':''}${i.package?' ('+i.package+')':''}</div>
+            <div style="font-size:.65rem;color:var(--red);font-weight:700;">৳${i.unitPrice*i.qty}</div>
+            ${dlHtml}
+          </div>
+        </div>`;
+      }).join('');
       return`<div class="lc-card">
         <div class="lc-title">🛒 Session ${sessionId.slice(-8)} · ${items.length} item${items.length!==1?'s':''} · ৳${total}</div>
-        <div class="lc-items">${items.map(i=>`<div class="lc-chip">${i.qty}× ${esc(i.name)}${i.sz?' ('+i.sz+')':''}${i.package?' ('+i.package+')':''} — ৳${i.unitPrice*i.qty}</div>`).join('')}</div>
+        <div class="lc-items" style="gap:.5rem;">${chips}</div>
       </div>`;
     }).filter(Boolean).join('') || '<div class="lc-empty">Cart sessions found but all appear empty.</div>';
   });
