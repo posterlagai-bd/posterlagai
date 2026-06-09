@@ -12,7 +12,18 @@
   var _SYNC_KEYS = ['pl2_cats','pl2_posters','pl2_pols','pl2_mags','pl2_revs','pl2_orders','pl2_pr','pl2_nid',
     'pl2_hero1','pl2_hero2','pl2_hero3','pl2_hero4','pl2_hero5','pl2_hero6',
     'pl2_hero7','pl2_hero8','pl2_hero9','pl2_hero10','pl2_hero11','pl2_hero12',
-    'pl2_hero13','pl2_hero14','pl2_hero15','pl2_hero16','pl2_hero17','pl2_hero18'];
+    'pl2_hero13','pl2_hero14','pl2_hero15','pl2_hero16','pl2_hero17','pl2_hero18',
+    'iep_hero_eyebrow','iep_hero_title','iep_hero_tagline','iep_hero_sub',
+    'iep_ticker',
+    'iep_shop_label','iep_shop_title',
+    'iep_pol_label','iep_pol_title','iep_pol_sub',
+    'iep_mag_label','iep_mag_title',
+    'iep_combo_title','iep_combo_desc',
+    'iep_about_title','iep_about_text',
+    'iep_stat1_val','iep_stat1_lbl','iep_stat2_val','iep_stat2_lbl',
+    'iep_stat3_val','iep_stat3_lbl','iep_stat4_val','iep_stat4_lbl',
+    'iep_contact_phone1','iep_contact_phone2','iep_contact_email',
+    'iep_footer_phones','iep_footer_copy'];
   var _lsSet = localStorage.setItem.bind(localStorage);
   var _lsGet = localStorage.getItem.bind(localStorage);
 
@@ -50,7 +61,13 @@
           }
         }
         _fbDb.ref('pl2/' + key).on('value', function(snap) {
-          if (snap.exists()) _lsSet(key, snap.val());
+          if (snap.exists()) {
+            _lsSet(key, snap.val());
+            // Re-apply inline edits live when iep_ keys update from Firebase
+            if (key.indexOf('iep_') === 0 && typeof restoreInlineEdits === 'function') {
+              restoreInlineEdits();
+            }
+          }
         });
       });
     });
@@ -2677,7 +2694,16 @@ function syncCartToFb(){
   _cartSyncTimer=setTimeout(function(){
     if(!_fbDb) return;
     var key='pl2_cart_'+_cartSessionId;
-    if(cart.length){_fbDb.ref('pl2/'+key).set(JSON.stringify(cart));}
+    if(cart.length){
+      // Strip raw base64 image data before syncing — keep only metadata
+      var cartForSync=cart.map(function(i){
+        var c=Object.assign({},i);
+        if(c.customFile){c.img='';delete c.customFile;}
+        if(c.customFiles){delete c.customFiles;}
+        return c;
+      });
+      _fbDb.ref('pl2/'+key).set(JSON.stringify(cartForSync));
+    }
     else{_fbDb.ref('pl2/'+key).remove();}
   },800);
 }
@@ -2736,11 +2762,13 @@ const WA_NUMBER='8801577537351';
 
 async function sendTelegram(text){
   try{
-    await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`,{
+    const r=await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`,{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({chat_id:TG_CHAT,text,parse_mode:'HTML'})
     });
-  }catch(e){console.error('TG text error',e);}
+    const j=await r.json();
+    return j.ok===true;
+  }catch(e){console.error('TG text error',e);return false;}
 }
 
 async function sendTelegramPhoto(dataUrl,caption){
@@ -2844,13 +2872,15 @@ async function submitOrder(){
       return;
     }
     if(trxMsg){trxMsg.style.color='#22c55e';trxMsg.textContent='✓ Payment verified!';}
+    if(confirmBtn){confirmBtn.textContent='Placing order…';} // stays disabled
   }
   const zone=document.querySelector('.delivery-opt.active .delivery-opt-name')?.textContent||'Inside Dhaka';
+  if(confirmBtn){confirmBtn.disabled=true;confirmBtn.textContent='Placing order…';}
   const mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const now=new Date();
   const _orderItems=getOrderItems();
   const _orderSubtotal=_orderItems.reduce((s,i)=>s+i.unitPrice*i.qty,0);
-  const order={id:Date.now(),date:`${now.getDate()} ${mo[now.getMonth()]} ${now.getFullYear()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`,
+  const order={id:Date.now()+Math.floor(Math.random()*9000+1000),date:`${now.getDate()} ${mo[now.getMonth()]} ${now.getFullYear()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`,
     customer:{name,phone,email,address,notes:document.getElementById('custNotes').value.trim()},
     items:JSON.parse(JSON.stringify(_orderItems)),
     delivery:{zone,charge:_isOwner?0:deliveryCharge},
@@ -2882,7 +2912,6 @@ async function submitOrder(){
     return clean;
   }));
   orders.unshift(orderToSave);ss('pl2_orders',orders);
-  if(confirmBtn){confirmBtn.disabled=false;confirmBtn.textContent='✓ CONFIRM ORDER';}
 
   // ── SYNC TO ORDER MANAGER (index.html / Firestore) ──
   if(typeof window.__pushToOrderManager === 'function'){
@@ -2931,10 +2960,22 @@ async function submitOrder(){
     `💰 <b>Grand Total: ৳${order.grandTotal}</b>\n`+
     `🕐 ${order.date}`;
 
-  sendTelegram(tgMsg);
+  const tgOk = await sendTelegram(tgMsg);
+  if(!tgOk){
+    // Telegram failed — roll back order save and re-enable button
+    orders.shift();
+    ss('pl2_orders',orders);
+    if(confirmBtn){
+      confirmBtn.disabled=false;
+      confirmBtn.textContent='✓ CONFIRM ORDER';
+    }
+    const trxMsgEl=document.getElementById('trxVerifyMsg');
+    if(trxMsgEl){trxMsgEl.style.color='#e11d48';trxMsgEl.textContent='❌ Could not send order — check your connection and try again.';}
+    return;
+  }
 
   // Send each custom file as document (full quality, no compression)
-  cart.forEach((it,i)=>{
+  _orderItems.forEach((it,i)=>{
     // Custom poster — single file
     if(it.customFile){
       const cap=`📎 File ${i+1}: ${it.customFileName||'design'} — ${it.sz}, ${it.lam} — Order by ${name} (${phone})`;
@@ -2947,7 +2988,7 @@ async function submitOrder(){
         sendTelegramDocument(dataUrl, `polaroid_${j+1}.jpg`, cap);
       });
     }
-  });
+  }); // end _orderItems.forEach
 
   // Remove only the ordered items; leave the rest in cart
   var _orderedIds = new Set(_orderItems.map(i=>i.cartId));
@@ -4368,6 +4409,120 @@ function deleteMagFromPopover(ev, mid){
   loadHeroPanels();
   updateCartCount();
   history.replaceState({page:"store"},"","");
+})();
+
+
+// ── SWIPE SUPPORT ──
+(function(){
+  var THRESHOLD = 40; // min px to count as a swipe
+
+  function addSwipe(el, onLeft, onRight){
+    if(!el) return;
+    var startX=0, startY=0, locked=false;
+    el.addEventListener('touchstart', function(e){
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      locked = false;
+    }, {passive:true});
+    el.addEventListener('touchend', function(e){
+      if(locked) return;
+      var dx = e.changedTouches[0].clientX - startX;
+      var dy = e.changedTouches[0].clientY - startY;
+      if(Math.abs(dx) < THRESHOLD || Math.abs(dy) > Math.abs(dx)) return;
+      if(dx < 0) onLeft();
+      else onRight();
+    }, {passive:true});
+    // Lock scroll direction — if user scrolls vertically, ignore horizontal
+    el.addEventListener('touchmove', function(e){
+      var dx = Math.abs(e.touches[0].clientX - startX);
+      var dy = Math.abs(e.touches[0].clientY - startY);
+      if(dy > dx) locked = true;
+    }, {passive:true});
+  }
+
+  // 1. Cart sidebar — swipe right to close
+  var sidebar = document.getElementById('cartSidebar');
+  if(sidebar){
+    addSwipe(sidebar,
+      function(){}, // swipe left — do nothing
+      function(){ closeCart(); } // swipe right — close
+    );
+  }
+
+  // 2. Polaroid carousel — swipe left/right
+  var polOuter = document.querySelector('.pol-carousel-outer');
+  if(polOuter){
+    addSwipe(polOuter,
+      function(){ polMove(1); },
+      function(){ polMove(-1); }
+    );
+  }
+
+  // 3. Poster item carousels (pic-track) — delegated on category layer
+  var catLayer = document.getElementById('layerCategory');
+  if(catLayer){
+    catLayer.addEventListener('touchstart', function(e){
+      var card = e.target.closest('.poster-item-carousel');
+      if(!card) return;
+      var track = card.querySelector('.pic-track');
+      if(!track) return;
+      var _sx = e.touches[0].clientX;
+      var _sy = e.touches[0].clientY;
+      var _lk = false;
+      function onMove(ev){
+        var dx=Math.abs(ev.touches[0].clientX-_sx), dy=Math.abs(ev.touches[0].clientY-_sy);
+        if(dy>dx) _lk=true;
+      }
+      function onEnd(ev){
+        catLayer.removeEventListener('touchmove',onMove);
+        catLayer.removeEventListener('touchend',onEnd);
+        if(_lk) return;
+        var dx = ev.changedTouches[0].clientX - _sx;
+        if(Math.abs(dx) < THRESHOLD) return;
+        var pid = track.id;
+        var len = track.children.length;
+        picMove(pid, len, dx<0?1:-1, null);
+      }
+      catLayer.addEventListener('touchmove', onMove, {passive:true});
+      catLayer.addEventListener('touchend', onEnd, {passive:true});
+    }, {passive:true});
+  }
+
+  // 4. Category card carousels (cat-carousel-track) — delegated on store layer
+  var storeLayer = document.getElementById('layerStore');
+  if(storeLayer){
+    storeLayer.addEventListener('touchstart', function(e){
+      var card = e.target.closest('.cat-card');
+      if(!card) return;
+      var cid = card.dataset.cid;
+      var len = parseInt(card.dataset.len||1);
+      if(!cid || len <= 1) return;
+      var _sx = e.touches[0].clientX;
+      var _sy = e.touches[0].clientY;
+      var _lk = false;
+      function onMove(ev){
+        var dx=Math.abs(ev.touches[0].clientX-_sx), dy=Math.abs(ev.touches[0].clientY-_sy);
+        if(dy>dx) _lk=true;
+      }
+      function onEnd(ev){
+        storeLayer.removeEventListener('touchmove',onMove);
+        storeLayer.removeEventListener('touchend',onEnd);
+        if(_lk) return;
+        var dx = ev.changedTouches[0].clientX - _sx;
+        if(Math.abs(dx) < THRESHOLD) return;
+        var t = document.getElementById(cid);
+        if(!t) return;
+        var idx = parseInt(t.dataset.idx||0);
+        idx = (idx + (dx<0?1:-1) + len) % len;
+        t.dataset.idx = idx;
+        t.style.transform = 'translateX(-'+(idx*100)+'%)';
+        document.querySelectorAll('[id^="'+cid+'_d"]').forEach(function(d,i){ d.classList.toggle('active',i===idx); });
+      }
+      storeLayer.addEventListener('touchmove', onMove, {passive:true});
+      storeLayer.addEventListener('touchend', onEnd, {passive:true});
+    }, {passive:true});
+  }
+
 })();
 
 </script>
