@@ -1305,7 +1305,10 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
             <div style="font-size:.62rem;color:#aaa;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem;">Send Delivery Charge via bKash</div>
             <div style="font-size:1.6rem;font-family:'Poppins',sans-serif;font-weight:800;color:#e11d48;" id="bkashAmountDisplay">৳0</div>
             <div style="font-size:.72rem;color:#aaa;margin:.3rem 0;">to bKash number</div>
-            <div style="font-size:1.25rem;font-family:'Poppins',sans-serif;font-weight:800;color:#fff;letter-spacing:.05em;">01709830634</div>
+            <div style="font-size:1.25rem;font-family:'Poppins',sans-serif;font-weight:800;color:#fff;letter-spacing:.05em;display:flex;align-items:center;justify-content:center;gap:.6rem;">
+              <span id="bkashNumberDisplay">01709830634</span>
+              <button onclick="copyBkashNumber(this)" style="background:none;border:1px solid #444;color:#aaa;font-size:.6rem;padding:.2rem .5rem;cursor:pointer;border-radius:3px;letter-spacing:.08em;">COPY</button>
+            </div>
             <div style="font-size:.62rem;color:#aaa;margin-top:.4rem;">Send Money → type the number → enter amount</div>
           </div>
           <div class="field" style="margin-bottom:.8rem;">
@@ -2316,6 +2319,21 @@ async function sendTelegramDocument(dataUrl,filename,caption){
 const BKASH_NUMBER = '01709830634'; // ← REPLACE with your bKash number
 const VERIFY_SERVER = 'https://posterlagai-verifier.onrender.com'; // ← REPLACE after deploying server
 
+function copyBkashNumber(btn){
+  const num=document.getElementById('bkashNumberDisplay').textContent;
+  navigator.clipboard.writeText(num).then(function(){
+    btn.textContent='✓ COPIED';
+    btn.style.borderColor='#22c55e';
+    btn.style.color='#22c55e';
+    setTimeout(function(){btn.textContent='COPY';btn.style.borderColor='';btn.style.color='';},2000);
+  }).catch(function(){
+    // fallback for older browsers
+    const el=document.createElement('textarea');
+    el.value=num;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);
+    btn.textContent='✓ COPIED';btn.style.borderColor='#22c55e';btn.style.color='#22c55e';
+    setTimeout(function(){btn.textContent='COPY';btn.style.borderColor='';btn.style.color='';},2000);
+  });
+}
 function showBkashPayStep(){
   const name=document.getElementById('custName').value.trim();
   const phone=document.getElementById('custPhone').value.trim();
@@ -2740,12 +2758,10 @@ function savePricesWithFeedback(){
   var btn=document.getElementById('savePricesBtn');
   if(!btn) return;
   btn.textContent='✓ Saved!';
-  btn.style.background='#22c55e';
-  btn.style.borderColor='#22c55e';
+  btn.setAttribute('style','position:relative;z-index:10;cursor:pointer;background:#22c55e !important;border-color:#22c55e !important;color:#000 !important;');
   setTimeout(function(){
+    btn.setAttribute('style','position:relative;z-index:10;cursor:pointer;');
     btn.textContent='Save All';
-    btn.style.background='';
-    btn.style.borderColor='';
   }, 2000);
 }
 
