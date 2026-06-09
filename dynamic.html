@@ -2306,7 +2306,7 @@ function pickMagPkg(el){
 }
 function addMagToCart(mid,name,img){
   const PR=gs('pl2_pr',DEF_PR);
-  const card=document.querySelector(`.mag-card:has([onclick*="addMagToCart(${mid}"])`)||document.querySelectorAll('.mag-card')[magazines.findIndex(m=>m.id===mid)];
+  const card=document.querySelector(`.mag-card:has([onclick*="addMagToCart(${mid})"])`)||document.querySelectorAll('.mag-card')[magazines.findIndex(m=>m.id===mid)];
   const activePkg=card?card.querySelector('.mag-pkg.active'):null;
   const pr=activePkg?parseInt(activePkg.dataset.pr):PR.m8;
   const pkgLabel=activePkg?activePkg.querySelector('span').textContent:'8 Pages';
