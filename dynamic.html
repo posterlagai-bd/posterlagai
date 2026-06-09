@@ -523,6 +523,10 @@ footer{background:var(--black);border-top:1px solid #111;padding:2.5rem 5rem;dis
 .cq-num{width:32px;text-align:center;font-family:'Poppins',sans-serif;font-weight:700;font-size:.85rem;}
 .cart-item-remove{background:none;border:none;color:#555;cursor:pointer;font-size:.75rem;margin-left:.3rem;}
 .cart-item-remove:hover{color:#ff3333;}
+.cart-item-select{position:absolute;bottom:.5rem;right:.5rem;width:22px;height:22px;border:2px solid #444;border-radius:3px;cursor:pointer;background:#111;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+.cart-item-select.selected{border-color:#22c55e;background:#22c55e;}
+.cart-item-select.selected::after{content:'✓';color:#fff;font-size:.75rem;font-weight:800;line-height:1;}
+.cart-item{position:relative;}
 .cart-footer{padding:1.2rem 1.5rem;border-top:1px solid var(--border);background:#050505;}
 .cart-total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;}
 .cart-total-label{font-size:.75rem;opacity:.5;font-weight:600;text-transform:uppercase;letter-spacing:.1em;}
@@ -994,8 +998,8 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
 
   /* Custom designs */
   .custom-panel{grid-template-columns:1fr!important;gap:1.2rem;}
-  .custom-tabs{gap:.3rem;margin-bottom:1.5rem;width:100%;}
-  .ctab{font-size:.62rem;padding:.5rem .8rem;letter-spacing:.08em;flex:1;text-align:center;}
+  .custom-tabs{gap:0;margin-bottom:1.5rem;width:100%;}
+  .ctab{font-size:.62rem;padding:.65rem .4rem;letter-spacing:.08em;flex:1;text-align:center;width:50%;}
   .custom-drop-zone{padding:1.2rem;}
   .cdz-title{font-size:.75rem;}
   .custom-price-preview{padding:.6rem .8rem;}
@@ -1128,8 +1132,8 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
   .polaroid-label{font-size:.55rem;}
   .polaroid-price{font-size:.68rem;}
 
-  .custom-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:.3rem;width:100%;}
-  .ctab{font-size:.55rem;padding:.4rem .6rem;white-space:nowrap;flex:1;text-align:center;}
+  .custom-tabs{overflow-x:visible;gap:0;width:100%;}
+  .ctab{font-size:.55rem;padding:.6rem .2rem;white-space:nowrap;flex:1;text-align:center;width:50%;}
 
   .login-box{padding:1.5rem 1rem;}
   .login-logo{font-size:1.5rem;}
@@ -1266,18 +1270,30 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
   function finishIntro(){
     hydrateBrandLogos();
     const intro = document.getElementById('introScreen');
+    // Always ensure store is visible, even if intro already ran
+    const store = document.getElementById('layerStore');
+    if(store) store.style.visibility = '';
     if (!intro || intro.classList.contains('done')) return;
     intro.style.transition = 'opacity .45s ease';
     intro.style.opacity = '0';
     setTimeout(() => {
       intro.classList.add('done');
-      const store = document.getElementById('layerStore');
-      if(store) store.style.visibility = '';
     }, 460);
   }
   setTimeout(finishIntro, 2000);
   window.addEventListener('load', function(){ setTimeout(finishIntro, 2000); });
   document.getElementById('introScreen').addEventListener('click', finishIntro);
+  // Safety net: if store is still invisible after 4s, force-reveal it
+  setTimeout(function(){
+    var store = document.getElementById('layerStore');
+    if(store && store.style.visibility === 'hidden'){
+      store.style.visibility = '';
+    }
+    var intro = document.getElementById('introScreen');
+    if(intro && !intro.classList.contains('done')){
+      intro.classList.add('done');
+    }
+  }, 4000);
 </script>
 
 <!-- LOGIN -->
@@ -1505,7 +1521,7 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
 <section class="combo-sec" id="combo">
   <div class="combo-inner">
     <div class="combo-art">
-      <div class="combo-wall"><div class="combo-poster-label">FULL<br>WALL</div></div>
+      <div class="combo-wall" id="comboWall"><div class="combo-poster-label">FULL<br>WALL</div></div>
       <div class="combo-badge">BEST VALUE</div>
     </div>
     <div>
@@ -1554,18 +1570,18 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
     <div>
       <h2 class="about-title" data-editable="text" data-edit-key="about_title" data-edit-label="✏ Edit About Title">ART FOR<br>EVERY WALL.</h2>
       <div class="about-stats">
-        <div><div class="stat-val">200+</div><div class="stat-lbl">Designs</div></div>
-        <div><div class="stat-val">48h</div><div class="stat-lbl">Avg. Delivery</div></div>
-        <div><div class="stat-val">100%</div><div class="stat-lbl">Print Quality</div></div>
-        <div><div class="stat-val">৳0</div><div class="stat-lbl">Hidden Fees</div></div>
+        <div><div class="stat-val" data-editable="text" data-edit-key="stat1_val" data-edit-label="✏ Edit Stat">200+</div><div class="stat-lbl" data-editable="text" data-edit-key="stat1_lbl" data-edit-label="✏ Edit Label">Designs</div></div>
+        <div><div class="stat-val" data-editable="text" data-edit-key="stat2_val" data-edit-label="✏ Edit Stat">48h</div><div class="stat-lbl" data-editable="text" data-edit-key="stat2_lbl" data-edit-label="✏ Edit Label">Avg. Delivery</div></div>
+        <div><div class="stat-val" data-editable="text" data-edit-key="stat3_val" data-edit-label="✏ Edit Stat">100%</div><div class="stat-lbl" data-editable="text" data-edit-key="stat3_lbl" data-edit-label="✏ Edit Label">Print Quality</div></div>
+        <div><div class="stat-val" data-editable="text" data-edit-key="stat4_val" data-edit-label="✏ Edit Stat">৳0</div><div class="stat-lbl" data-editable="text" data-edit-key="stat4_lbl" data-edit-label="✏ Edit Label">Hidden Fees</div></div>
       </div>
     </div>
     <div>
       <p class="about-text" data-editable="text" data-edit-key="about_text" data-edit-label="✏ Edit About Text">Poster Lagai was born from a simple obsession — great rooms start with great walls. We source, curate, and deliver premium wall art, polaroids, and custom magazines that carry real character.</p>
       <div class="contact-strip">
-        <div class="contact-line">📞 <a href="tel:01577537351">01577-537351</a></div>
-        <div class="contact-line">📞 <a href="tel:01709830634">01709-830634</a></div>
-        <div class="contact-line">✉️ <a href="mailto:posterlagai@gmail.com">posterlagai@gmail.com</a></div>
+        <div class="contact-line" data-editable="contact" data-edit-key="contact_phone1" data-edit-label="✏ Edit Phone 1">📞 <a href="tel:01577537351">01577-537351</a></div>
+        <div class="contact-line" data-editable="contact" data-edit-key="contact_phone2" data-edit-label="✏ Edit Phone 2">📞 <a href="tel:01709830634">01709-830634</a></div>
+        <div class="contact-line" data-editable="contact" data-edit-key="contact_email" data-edit-label="✏ Edit Email">✉️ <a href="mailto:posterlagai@gmail.com">posterlagai@gmail.com</a></div>
       </div>
     </div>
   </div>
@@ -1586,9 +1602,9 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
 
 <footer>
   <div class="footer-logo">POSTER <span>LAGAI</span></div>
-  <div style="font-size:.66rem;opacity:.22;">© 2024 Poster Lagai</div>
+  <div style="font-size:.66rem;opacity:.22;" data-editable="text" data-edit-key="footer_copy" data-edit-label="✏ Edit Copyright">© 2024 Poster Lagai</div>
   <div>
-    <div style="font-size:.66rem;opacity:.32;">01577-537351 · 01568-794913</div>
+    <div style="font-size:.66rem;opacity:.32;" data-editable="text" data-edit-key="footer_phones" data-edit-label="✏ Edit Footer Phones">01577-537351 · 01568-794913</div>
     <span class="admin-secret-link" onclick="goLogin()">🔒 ADMIN</span>
   </div>
 </footer>
@@ -1741,9 +1757,7 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
       <button class="a-top-btn" onclick="showAdminPage('prices')">💰 Prices</button>
       <button class="a-top-btn" onclick="showAdminPage('reviews')">⭐ Reviews</button>
       <button class="a-top-btn" onclick="showAdminPage('orders')">📦 Orders</button>
-      <button class="a-top-btn" onclick="showAdminPage('herotext')">✏️ Hero Text</button>
-      <button class="a-top-btn" onclick="showAdminPage('about')">ℹ️ About</button>
-      <button class="a-top-btn" onclick="showAdminPage('settings')">⚙️ Settings</button>
+
       <button class="a-top-btn" onclick="goStore()">← Store</button>
       <button class="a-top-btn danger" onclick="goLogin()">Logout</button>
     </div>
@@ -1877,6 +1891,16 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
             <tr><td>Magazine 12pg</td><td><input class="price-input" id="pr-m12" type="number" min="0"></td></tr>
             <tr><td>Magazine 16pg</td><td><input class="price-input" id="pr-m16" type="number" min="0"></td></tr>
             <tr><td>Combo Pack (start)</td><td><input class="price-input" id="pr-combo" type="number" min="0"></td></tr>
+            <tr><td colspan="2" style="padding-top:1rem;">
+              <div style="font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin-bottom:.5rem;font-weight:600;">Combo Section Image</div>
+              <div style="display:flex;gap:.6rem;align-items:center;margin-bottom:.4rem;">
+                <label style="font-family:'Poppins',sans-serif;font-weight:700;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#000;background:#cc1100;border:none;padding:.45rem 1rem;cursor:pointer;display:inline-block;">📁 Upload<input type="file" accept="image/*" style="display:none;" onchange="(function(f){if(!f)return;var r=new FileReader();r.onload=function(e){var ci=document.getElementById('pr-combo-img');if(ci)ci.value=e.target.result;var cp=document.getElementById('pr-combo-img-prev');if(cp)cp.innerHTML='<img src=\''+e.target.result+'\' style=\'width:100%;max-height:120px;object-fit:cover;border:1px solid #333;margin-top:.5rem;\'>';};r.readAsDataURL(f);})(this.files[0])"></label>
+                <span style="font-size:.65rem;opacity:.4;">or paste URL:</span>
+              </div>
+              <input id="pr-combo-img" type="text" placeholder="https://... or leave blank for auto-collage" style="width:100%;background:#0d0d0d;border:1px solid #2e2e2e;border-bottom:1px solid var(--red-dark);color:#fff;font-size:.75rem;padding:.45rem .7rem;outline:none;" oninput="var cp=document.getElementById('pr-combo-img-prev');if(cp)cp.innerHTML=this.value?'<img src=\''+this.value+'\' style=\'width:100%;max-height:120px;object-fit:cover;border:1px solid #333;margin-top:.5rem;\'>':''">
+              <div id="pr-combo-img-prev"></div>
+              <div style="font-size:.58rem;opacity:.3;margin-top:.4rem;">Leave blank to auto-show a collage of your real poster images.</div>
+            </td></tr>
             <tr><td>Delivery — Inside Dhaka</td><td><input class="price-input" id="pr-dd" type="number" min="0"></td></tr>
             <tr><td>Delivery — Outside Dhaka</td><td><input class="price-input" id="pr-do" type="number" min="0"></td></tr>
           </tbody></table></div>
@@ -1980,7 +2004,7 @@ const DEF_REVS=[
   {id:401,name:'Tahmid R.',product:'A3 Retro Poster',stars:5,text:'Absolutely stunning quality. Colours popped exactly like the preview.',date:'12 May 2024'},
   {id:402,name:'Nusrat J.',product:'Polaroid Pack x10',stars:5,text:'Got 10 polaroids for my room — ৳5 each is insane value.',date:'8 May 2024'},
 ];
-const DEF_PR={a5:20,a4:35,a3:65,pol:5,m8:350,m12:550,m16:700,combo:499,dd:70,dout:130};
+const DEF_PR={a5:20,a4:35,a3:65,pol:5,m8:350,m12:550,m16:700,combo:499,dd:70,dout:130,combo_img:''};
 
 let cats=gs('pl2_cats',DEF_CATS);
 let posters=gs('pl2_posters',DEF_POSTERS);
@@ -2005,6 +2029,7 @@ function goStore(){
   document.getElementById('layerAdmin').style.display='none';
   document.getElementById('layerCategory').style.display='none';
   renderStore();
+  history.pushState({page:'store'},'','');
 }
 function goLogin(){
   document.getElementById('layerLogin').style.display='flex';
@@ -2033,6 +2058,31 @@ function goAdminStore(){
   updateCartCount();
   enableInlineEdit();
 }
+
+// ── HISTORY / BACK BUTTON SUPPORT ──
+window.addEventListener('popstate', function(e){
+  var state = e.state || {};
+  var page = state.page || 'store';
+  if(page === 'category' && state.catId){
+    // restore category page without pushing new history
+    activeCatId = state.catId;
+    var cat = cats.find(function(c){ return c.id === state.catId; });
+    document.getElementById('catPageTitle').textContent = cat ? cat.name : 'Posters';
+    renderPosterList(state.catId);
+    document.getElementById('layerCategory').style.display = 'block';
+    document.getElementById('layerStore').style.display = 'none';
+  } else {
+    // default: go back to store
+    window._adminMode = false;
+    disableInlineEdit();
+    var ls = document.getElementById('layerStore');
+    ls.style.display = 'block';
+    ls.style.visibility = '';
+    document.getElementById('layerLogin').style.display = 'none';
+    document.getElementById('layerAdmin').style.display = 'none';
+    document.getElementById('layerCategory').style.display = 'none';
+  }
+});
 function checkPw(){
   if(document.getElementById('pwInput').value.trim()===ADMIN_PW){goAdminStore();}
   else{const b=document.getElementById('loginBox');b.classList.remove('login-shake');void b.offsetWidth;b.classList.add('login-shake');document.getElementById('loginError').classList.add('show');document.getElementById('pwInput').value='';}
@@ -2052,14 +2102,15 @@ function openCategoryPage(catId){
   renderPosterList(catId);
   document.getElementById('layerCategory').style.display='block';
   document.getElementById('layerStore').style.display='none';
+  history.pushState({page:'category',catId:catId},'','');
 }
 function closeCategoryPage(){
   document.getElementById('layerCategory').style.display='none';
   document.getElementById('layerStore').style.display='block';
+  history.pushState({page:'store'},'','');
 }
 
 function renderPosterList(catId){
-  // Clear all running poster carousels before re-rendering to prevent stale timers
   Object.keys(picTimers).forEach(pid=>{clearInterval(picTimers[pid]);delete picTimers[pid];});
   const PR=gs('pl2_pr',DEF_PR);
   const list=posters.filter(p=>p.catId===catId);
@@ -2160,6 +2211,7 @@ function renderStore(){
   renderMagazines();
   renderReviews();
   document.getElementById('storeComboPrice').textContent=PRICES.combo;
+  renderComboArt();
   // sync custom section prices
   const szMap={A5:PRICES.a5,A4:PRICES.a4,A3:PRICES.a3};
   document.querySelectorAll('#cpSizeRow .custom-size-chip').forEach(el=>{
@@ -2566,6 +2618,26 @@ function updateCartCount(){
   document.getElementById('cartCount').textContent=n;
   const cc=document.getElementById('catCartCount');if(cc)cc.textContent=n;
 }
+var cartSelected = new Set(); // cartIds selected for current order
+
+function toggleCartSelect(cid, el){
+  if(cartSelected.has(cid)){
+    cartSelected.delete(cid);
+    el.classList.remove('selected');
+  } else {
+    cartSelected.add(cid);
+    el.classList.add('selected');
+  }
+  // Update subtotal to reflect selection
+  var sel = cartSelected.size > 0 ? cart.filter(i=>cartSelected.has(i.cartId)) : cart;
+  document.getElementById('cartSubtotal').textContent='৳'+sel.reduce((s,i)=>s+i.unitPrice*i.qty,0);
+}
+
+function getOrderItems(){
+  // If nothing selected, order everything; otherwise only selected
+  return cartSelected.size > 0 ? cart.filter(i=>cartSelected.has(i.cartId)) : cart;
+}
+
 function renderCart(){
   const list=document.getElementById('cartItemsList');
   const foot=document.getElementById('cartFooter');
@@ -2585,8 +2657,11 @@ function renderCart(){
         </div>
       </div>
       <div class="cart-item-price">৳${i.unitPrice*i.qty}</div>
+      <div class="cart-item-select${cartSelected.has(i.cartId)?' selected':''}" onclick="toggleCartSelect('${i.cartId}',this)" title="Select for this order"></div>
     </div>`).join('');
-  document.getElementById('cartSubtotal').textContent='৳'+cartSubtotal();
+  var _dispSel = cartSelected.size > 0 ? cart.filter(i=>cartSelected.has(i.cartId)) : cart;
+  var _dispTotal = _dispSel.reduce((s,i)=>s+i.unitPrice*i.qty,0);
+  document.getElementById('cartSubtotal').textContent='৳'+_dispTotal+(cartSelected.size>0?' (selected)':'');
 }
 function cartQty(cid,d){const i=cart.find(x=>x.cartId===cid);if(!i)return;i.qty=Math.max(1,i.qty+d);updateCartCount();renderCart();syncCartToFb();}
 function cartRemove(cid){cart=cart.filter(i=>i.cartId!==cid);updateCartCount();renderCart();syncCartToFb();}
@@ -2611,6 +2686,8 @@ function syncCartToFb(){
 let deliveryCharge=70;
 function checkoutFromCart(){
   if(!cart.length){alert('Your cart is empty!');return;}
+  var orderItems = getOrderItems();
+  if(!orderItems.length){alert('No items selected!');return;}
   closeCart();
   const PR=gs('pl2_pr',DEF_PR);
   deliveryCharge=PR.dd;
@@ -2632,19 +2709,23 @@ function openOrderModal(type,name){
   checkoutFromCart();
 }
 function buildCartSummary(){
+  var items = getOrderItems();
+  var subtotal = items.reduce((s,i)=>s+i.unitPrice*i.qty,0);
+  var leftover = cart.length - items.length;
   const sum=document.getElementById('modalCartSummary');
-  sum.innerHTML=`<div class="cs-title">Order Summary (${cart.length} item${cart.length!==1?'s':''})</div>`+
-    cart.map(i=>`<div class="cs-line">
+  sum.innerHTML=`<div class="cs-title">Order Summary (${items.length} item${items.length!==1?'s':''}${leftover>0?' · <span style="color:#f59e0b;font-size:.75rem;">'+leftover+' item'+(leftover>1?'s':'')+' staying in cart</span>':''})</div>`+
+    items.map(i=>`<div class="cs-line">
       <span style="display:flex;align-items:center;gap:.6rem;">
         ${i.img?`<img src="${i.img}" style="width:36px;height:46px;object-fit:cover;border:1px solid #222;flex-shrink:0;" onerror="this.style.display='none'">`:''}
         <span>${i.qty}× ${i.name}${i.sz?' ('+i.sz+', '+i.lam+')':''}${i.package?' ('+i.package+')':''}</span>
       </span>
       <span style="font-family:'Poppins',sans-serif;font-weight:800;color:var(--red);">৳${i.unitPrice*i.qty}</span>
     </div>`).join('')+
-    `<div class="cs-total"><span class="cs-total-lbl">Items</span><span class="cs-total-val">৳${cartSubtotal()}</span></div>`;
+    `<div class="cs-total"><span class="cs-total-lbl">Items</span><span class="cs-total-val">৳${subtotal}</span></div>`;
   updateGrand();
 }
-function updateGrand(){document.getElementById('grandTotalDisplay').textContent='৳'+(cartSubtotal()+deliveryCharge);}
+function orderSubtotal(){var items=getOrderItems();return items.reduce((s,i)=>s+i.unitPrice*i.qty,0);}
+function updateGrand(){document.getElementById('grandTotalDisplay').textContent='৳'+(orderSubtotal()+deliveryCharge);}
 function pickDelivery(el){document.querySelectorAll('.delivery-opt').forEach(o=>o.classList.remove('active'));el.classList.add('active');deliveryCharge=parseInt(el.dataset.charge);updateGrand();}
 function closeOrderModal(){document.getElementById('orderModal').classList.remove('open');}
 document.getElementById('orderModal').addEventListener('click',e=>{if(e.target===document.getElementById('orderModal'))closeOrderModal();});
@@ -2767,12 +2848,14 @@ async function submitOrder(){
   const zone=document.querySelector('.delivery-opt.active .delivery-opt-name')?.textContent||'Inside Dhaka';
   const mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const now=new Date();
+  const _orderItems=getOrderItems();
+  const _orderSubtotal=_orderItems.reduce((s,i)=>s+i.unitPrice*i.qty,0);
   const order={id:Date.now(),date:`${now.getDate()} ${mo[now.getMonth()]} ${now.getFullYear()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`,
     customer:{name,phone,email,address,notes:document.getElementById('custNotes').value.trim()},
-    items:JSON.parse(JSON.stringify(cart)),
+    items:JSON.parse(JSON.stringify(_orderItems)),
     delivery:{zone,charge:_isOwner?0:deliveryCharge},
     bkashTrxId:trxId,
-    itemsTotal:cartSubtotal(),grandTotal:_isOwner?cartSubtotal():cartSubtotal()+deliveryCharge,status:'New'};
+    itemsTotal:_orderSubtotal,grandTotal:_isOwner?_orderSubtotal:_orderSubtotal+deliveryCharge,status:'New'};
   // Strip raw file data before saving to storage (files already sent to Telegram)
   // But keep a small thumbnail for admin display
   const orderToSave=JSON.parse(JSON.stringify(order));
@@ -2866,8 +2949,12 @@ async function submitOrder(){
     }
   });
 
-  clearCart();
-  if(_fbDb){_fbDb.ref('pl2/pl2_cart_'+_cartSessionId).remove();}
+  // Remove only the ordered items; leave the rest in cart
+  var _orderedIds = new Set(_orderItems.map(i=>i.cartId));
+  cart = cart.filter(i=>!_orderedIds.has(i.cartId));
+  cartSelected.clear();
+  updateCartCount(); syncCartToFb();
+  if(!cart.length && _fbDb){_fbDb.ref('pl2/pl2_cart_'+_cartSessionId).remove();}
   ['custName','custPhone','custAddress','custNotes','custEmail'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('modalFormWrap').style.display='none';
   document.getElementById('successState').classList.add('visible');
@@ -3124,17 +3211,47 @@ function deleteMag(id){
 }
 
 // PRICES
+function renderComboArt(){
+  var wall = document.getElementById('comboWall');
+  if(!wall) return;
+  var customImg = PRICES.combo_img || '';
+  if(customImg){
+    wall.innerHTML = '<img src="'+customImg+'" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentNode.innerHTML='<div class=\'combo-poster-label\'>FULL<br>WALL</div>'">';
+    return;
+  }
+  // Build collage from real poster images
+  var allImgs = [];
+  posters.forEach(function(p){ if(p.imgs && p.imgs.length) allImgs.push(p.imgs[0]); });
+  if(!allImgs.length){
+    wall.innerHTML = '<div class="combo-poster-label">FULL<br>WALL</div>';
+    return;
+  }
+  // Shuffle and pick up to 6
+  allImgs.sort(function(){ return Math.random()-.5; });
+  var picks = allImgs.slice(0,6);
+  var cols = picks.length >= 4 ? 2 : 1;
+  var grid = '<div style="display:grid;grid-template-columns:repeat('+cols+',1fr);gap:3px;width:100%;height:100%;">';
+  picks.forEach(function(src){
+    grid += '<div style="overflow:hidden;"><img src="'+src+'" style="width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.85);" onerror="this.parentNode.style.background='#1a1a1a'"></div>';
+  });
+  grid += '</div>';
+  wall.innerHTML = grid;
+}
 function loadPrices(){
   PRICES=gs('pl2_pr',DEF_PR);
   ['a5','a4','a3','pol','m8','m12','m16','combo'].forEach(k=>{const el=document.getElementById('pr-'+k);if(el)el.value=PRICES[k];});
+  var ci=document.getElementById('pr-combo-img');if(ci)ci.value=PRICES.combo_img||'';
+  var cp=document.getElementById('pr-combo-img-prev');if(cp)cp.innerHTML=PRICES.combo_img?'<img src="'+PRICES.combo_img+'" style="width:100%;max-height:120px;object-fit:cover;border:1px solid #333;margin-top:.5rem;">':'';
   document.getElementById('pr-dd').value=PRICES.dd;
   document.getElementById('pr-do').value=PRICES.dout;
 }
 function savePrices(){
-  PRICES={a5:+document.getElementById('pr-a5').value,a4:+document.getElementById('pr-a4').value,a3:+document.getElementById('pr-a3').value,pol:+document.getElementById('pr-pol').value,m8:+document.getElementById('pr-m8').value,m12:+document.getElementById('pr-m12').value,m16:+document.getElementById('pr-m16').value,combo:+document.getElementById('pr-combo').value,dd:+document.getElementById('pr-dd').value,dout:+document.getElementById('pr-do').value};
+  var _ci=document.getElementById('pr-combo-img');var _civ=_ci?_ci.value.trim():'';
+  PRICES={a5:+document.getElementById('pr-a5').value,a4:+document.getElementById('pr-a4').value,a3:+document.getElementById('pr-a3').value,pol:+document.getElementById('pr-pol').value,m8:+document.getElementById('pr-m8').value,m12:+document.getElementById('pr-m12').value,m16:+document.getElementById('pr-m16').value,combo:+document.getElementById('pr-combo').value,dd:+document.getElementById('pr-dd').value,dout:+document.getElementById('pr-do').value,combo_img:_civ};
   ss('pl2_pr',PRICES);
   document.getElementById('storeComboPrice').textContent=PRICES.combo;
   renderMagazines();
+  renderComboArt();
 }
 function savePricesWithFeedback(){
   var btn=document.getElementById('savePricesBtn');
@@ -3575,6 +3692,35 @@ function openIEP(el,e){
     });
   }
 
+  else if(type==='contact'){
+    // Format: "icon display_text|href"  e.g. "📞 01577-537351|tel:01577537351"
+    var aTag=el.querySelector('a');
+    var icon=el.innerHTML.split('<')[0].trim();
+    var dispText=aTag?aTag.textContent.trim():'';
+    var href=aTag?aTag.getAttribute('href'):'';
+    var defVal=(icon?icon+' ':'')+dispText+'|'+href;
+    var storedC=localStorage.getItem('iep_'+key)||defVal;
+    title.textContent='EDIT CONTACT';
+    body.innerHTML='<label class="iep-label">Display text</label>'
+      +'<input class="iep-input" id="iepContactText" value="'+(storedC.split('|')[0]||defVal.split('|')[0]).replace(/"/g,'&quot;')+'" style="margin-bottom:.6rem;">'
+      +'<label class="iep-label">Link (tel:... or mailto:...)</label>'
+      +'<input class="iep-input" id="iepContactHref" value="'+(storedC.split('|')[1]||href).replace(/"/g,'&quot;')+'">'
+      +'<div style="font-size:.6rem;opacity:.3;margin-top:.4rem;">Example link: tel:01777123456 or mailto:you@gmail.com</div>';
+    sb.addEventListener('click',function(ev){
+      ev.stopPropagation();
+      var text=document.getElementById('iepContactText').value.trim();
+      var hrefVal=document.getElementById('iepContactHref').value.trim();
+      localStorage.setItem('iep_'+key,text+'|'+hrefVal);
+      // Rebuild the contact line HTML
+      var linkText=text.replace(/^[📞✉️📧📱]\s*/,'');
+      var emojiMatch=text.match(/^[📞✉️📧📱]\s*/);
+      var emoji=emojiMatch?emojiMatch[0]:'';
+      el.innerHTML=emoji+'<a href="'+hrefVal+'">'+linkText+'</a>';
+      toast('Saved!');
+      closeIEP();
+    });
+  }
+
   else if(type==='hero-panel'){
     var n=el.dataset.panel;
     var existing=localStorage.getItem('pl2_hero'+n);
@@ -3680,6 +3826,18 @@ function closeIEP(){
 window.closeIEP = closeIEP;
 
 function restoreInlineEdits(){
+  // Restore contact lines
+  document.querySelectorAll('[data-editable="contact"]').forEach(function(el){
+    var stored=localStorage.getItem('iep_'+el.dataset.editKey);
+    if(!stored) return;
+    var parts=stored.split('|');
+    var text=parts[0]||'';
+    var href=parts[1]||'';
+    var linkText=text.replace(/^[📞✉️📧📱]\s*/,'');
+    var emojiMatch=text.match(/^[📞✉️📧📱]\s*/);
+    var emoji=emojiMatch?emojiMatch[0]:'';
+    el.innerHTML=emoji+'<a href="'+href+'">'+linkText+'</a>';
+  });
   document.querySelectorAll('[data-editable="text"]').forEach(function(el){
     var stored=localStorage.getItem('iep_'+el.dataset.editKey);
     if(stored) el.innerHTML=stored.replace(/\n/g,'<br>');
@@ -4209,6 +4367,7 @@ function deleteMagFromPopover(ev, mid){
   renderStore();
   loadHeroPanels();
   updateCartCount();
+  history.replaceState({page:"store"},"","");
 })();
 
 </script>
