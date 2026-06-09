@@ -2252,7 +2252,11 @@ function submitOrder(){
     `💰 Total: ৳${order.grandTotal} (${zone})`,
     `🕐 ${order.date}`
   ].join('\n');
-  window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(waLines)}`, '_blank');
+  const waUrl=`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(waLines)}`;
+  // Use a temporary link to avoid popup blocker
+  const waLink=document.createElement('a');
+  waLink.href=waUrl;waLink.target='_blank';waLink.rel='noopener';
+  document.body.appendChild(waLink);waLink.click();document.body.removeChild(waLink);
 
   // ── TELEGRAM NOTIFICATION ──
   const itemLines=cart.map((it,i)=>{
