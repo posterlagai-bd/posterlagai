@@ -4536,9 +4536,27 @@ function iexPolImgFile(input, pid){
   var f = input.files[0]; if(!f) return;
   var r = new FileReader();
   r.onload = function(ev){
-    document.getElementById('iex-polimg').value = ev.target.result;
+    var dataUrl = ev.target.result;
+    // Show local preview immediately
     var prev = document.getElementById('iex-polprev');
-    if(prev) prev.innerHTML = '<img src="' + ev.target.result + '" style="width:100%;max-height:120px;object-fit:cover;border:1px solid #333;">';
+    if(prev) prev.innerHTML = '<img src="' + dataUrl + '" style="width:100%;max-height:120px;object-fit:cover;border:1px solid #333;"><div id="iex-polimg-status" style="font-size:.65rem;opacity:.6;margin-top:.3rem;text-align:center;">⏳ Uploading…</div>';
+    // Upload to ImgBB so a permanent URL is saved (not raw base64 which exceeds Firebase limits)
+    var formData = new FormData();
+    formData.append('image', dataUrl.split(',')[1]);
+    fetch('https://api.imgbb.com/1/upload?key=a3100c9ebe9b3fe33548dcbe149421b9', {
+      method: 'POST', body: formData
+    }).then(function(res){ return res.json(); }).then(function(data){
+      if(data && data.data && data.data.url){
+        document.getElementById('iex-polimg').value = data.data.url;
+        var st = document.getElementById('iex-polimg-status');
+        if(st) st.innerHTML = '✅ Uploaded';
+      } else { throw new Error('No URL'); }
+    }).catch(function(err){
+      console.warn('ImgBB upload failed, falling back to base64:', err);
+      document.getElementById('iex-polimg').value = dataUrl;
+      var st = document.getElementById('iex-polimg-status');
+      if(st) st.innerHTML = '⚠️ Upload failed — image may not persist after refresh';
+    });
   };
   r.readAsDataURL(f);
 }
@@ -4597,9 +4615,27 @@ function iexMagImgFile(input, mid){
   var f = input.files[0]; if(!f) return;
   var r = new FileReader();
   r.onload = function(ev){
-    document.getElementById('iex-magimg').value = ev.target.result;
+    var dataUrl = ev.target.result;
+    // Show local preview immediately
     var prev = document.getElementById('iex-magprev');
-    if(prev) prev.innerHTML = '<img src="' + ev.target.result + '" style="width:100%;max-height:120px;object-fit:cover;border:1px solid #333;">';
+    if(prev) prev.innerHTML = '<img src="' + dataUrl + '" style="width:100%;max-height:120px;object-fit:cover;border:1px solid #333;"><div id="iex-magimg-status" style="font-size:.65rem;opacity:.6;margin-top:.3rem;text-align:center;">⏳ Uploading…</div>';
+    // Upload to ImgBB so a permanent URL is saved (not raw base64 which exceeds Firebase limits)
+    var formData = new FormData();
+    formData.append('image', dataUrl.split(',')[1]);
+    fetch('https://api.imgbb.com/1/upload?key=a3100c9ebe9b3fe33548dcbe149421b9', {
+      method: 'POST', body: formData
+    }).then(function(res){ return res.json(); }).then(function(data){
+      if(data && data.data && data.data.url){
+        document.getElementById('iex-magimg').value = data.data.url;
+        var st = document.getElementById('iex-magimg-status');
+        if(st) st.innerHTML = '✅ Uploaded';
+      } else { throw new Error('No URL'); }
+    }).catch(function(err){
+      console.warn('ImgBB upload failed, falling back to base64:', err);
+      document.getElementById('iex-magimg').value = dataUrl;
+      var st = document.getElementById('iex-magimg-status');
+      if(st) st.innerHTML = '⚠️ Upload failed — image may not persist after refresh';
+    });
   };
   r.readAsDataURL(f);
 }
