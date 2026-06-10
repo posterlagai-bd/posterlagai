@@ -2084,6 +2084,8 @@ function goLogin(){
   document.getElementById('pwInput').value='';
 }
 function goAdmin(){
+  window._adminMode=false;
+  disableInlineEdit();
   document.getElementById('layerAdmin').style.display='block';
   document.getElementById('layerStore').style.display='none';
   document.getElementById('layerLogin').style.display='none';
