@@ -65,7 +65,14 @@
         }
         _fbDb.ref('pl2/' + key).on('value', function(snap) {
           if (snap.exists()) {
-            _lsSet(key, snap.val());
+            var incoming = snap.val();
+            // Only overwrite localStorage when the value actually changed —
+            // prevents the Firebase echo of our own ss() write from racing
+            // with a newer local change (e.g. a second "Add Category" click).
+            var current = _lsGet(key);
+            if (incoming !== current) {
+              _lsSet(key, incoming);
+            }
             // Re-apply inline edits live when iep_ keys update from Firebase
             if (key.indexOf('iep_') === 0 && typeof restoreInlineEdits === 'function') {
               restoreInlineEdits();
@@ -1937,7 +1944,7 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
               </div>
               <!-- Thumbnails grid -->
               <div class="combo-img-grid" id="comboImgGrid"></div>
-              <div style="font-size:.58rem;opacity:.3;margin-top:.6rem;">Click ✕ on a thumbnail to remove it. Images auto-save when you click Save All.</div>
+              <div style="font-size:.58rem;opacity:.3;margin-top:.6rem;">Images auto-save immediately on upload. Click ✕ to remove. Use Save All to update prices.</div>
             </td></tr>
             <tr><td>Delivery — Inside Dhaka</td><td><input class="price-input" id="pr-dd" type="number" min="0"></td></tr>
             <tr><td>Delivery — Outside Dhaka</td><td><input class="price-input" id="pr-do" type="number" min="0"></td></tr>
@@ -2026,7 +2033,7 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
 <script>
 // ── STORAGE ──
 const gs=(k,d)=>{try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):d;}catch{return d;}};
-const ss=(k,v)=>{try{const s=JSON.stringify(v);localStorage.setItem(k,s);if(window._fbDb)window._fbDb.ref("pl2/"+k).set(s);}catch{}};
+const ss=(k,v)=>{try{const s=JSON.stringify(v);_lsSet(k,s);if(_fbDb)_fbDb.ref("pl2/"+k).set(s);}catch{}};
 
 // ── DEFAULT DATA ──
 const DEF_CATS=[
@@ -3431,20 +3438,27 @@ function addComboImgs(input){
   var files = Array.from(input.files);
   if(!files.length) return;
   input.value = '';
+  // Reload fresh from storage so existing combo_imgs are not lost
+  PRICES = gs('pl2_pr', DEF_PR);
   if(!Array.isArray(PRICES.combo_imgs)) PRICES.combo_imgs = [];
   var grid = document.getElementById('comboImgGrid');
   if(grid) grid.innerHTML = '<div style="font-size:.7rem;color:var(--red);padding:.5rem;">⏳ Uploading '+files.length+' image'+(files.length>1?'s':'')+' to storage…</div>';
   _uploadMultiToStorage(files, function(urls){
     urls.forEach(function(u){ if(u) PRICES.combo_imgs.push(u); });
+    // Auto-save immediately so images persist without needing "Save All"
+    ss('pl2_pr', PRICES);
     _renderComboImgGrid();
-    toast(files.length + ' image'+(files.length>1?'s':'')+' uploaded — click Save All to apply.');
+    renderComboArt();
+    toast(files.length + ' image'+(files.length>1?'s':'')+' uploaded & saved ✅');
   });
 }
 
 function removeComboImg(i){
   if(!Array.isArray(PRICES.combo_imgs)) return;
   PRICES.combo_imgs.splice(i, 1);
+  ss('pl2_pr', PRICES);
   _renderComboImgGrid();
+  renderComboArt();
 }
 
 // Inline storefront editor for combo images (admin edit bar)
