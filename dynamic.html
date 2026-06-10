@@ -3059,7 +3059,7 @@ function saveCategory(){
   const img=document.getElementById('cat-img').value.trim();
   if(!name){alert('Category name required.');return;}
   if(!img){alert('Cover image required. If you uploaded a file, wait for the ✅ Uploaded status before saving.');return;}
-  if(img.startsWith('data:')){alert('Image is still uploading or upload failed. Please wait for the ✅ Uploaded status, or paste an image URL directly.');return;}
+  if(img.startsWith('data:') && img.length > 2.5 * 1024 * 1024){alert('Cover image upload failed and the file is too large to save. Please try a smaller file or check your connection.');return;}
   const eid=document.getElementById('cat-edit-id').value;
   if(eid){const c=cats.find(x=>x.id==eid);if(c)Object.assign(c,{name,img});}
   else{cats.push({id:nid++,name,img});ss('pl2_nid',nid);}
@@ -3165,7 +3165,10 @@ function savePoster(catId){
   const raw=document.getElementById('pi_'+catId).value;
   const imgs=raw.split('\n').map(s=>s.trim()).filter(Boolean);
   if(!name||!imgs.length){alert('Poster name and at least one image required.');return;}
-  if(imgs.some(function(u){return u.startsWith('data:');})){alert('One or more images are still uploading. Please wait for uploads to finish before saving.');return;}
+  if(imgs.some(function(u){return u.startsWith('data:') && u.length > 2.5 * 1024 * 1024;})){
+    alert('One or more images failed to upload and are too large to save. Please make sure your images are not too large or check your connection.');
+    return;
+  }
   const eid=document.getElementById('pe_id_'+catId).value;
   if(eid){const p=posters.find(x=>x.id==eid);if(p)Object.assign(p,{name,imgs,img:imgs[0]});}
   else{posters.push({id:nid++,catId,name,imgs,img:imgs[0]});ss('pl2_nid',nid);}
@@ -3179,10 +3182,57 @@ function deletePoster(pid){
   ss('pl2_posters',posters);renderAdminCats();renderCategories();updateDash();toast('Poster deleted');
 }
 
+// Image compression helper
+function _compressImage(file, maxW, maxH, callback) {
+  if (!file.type.startsWith('image/') || file.type.includes('svg')) {
+    callback(file);
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      var w = img.width;
+      var h = img.height;
+      if (w > maxW || h > maxH) {
+        if (w > h) {
+          h = Math.round((h * maxW) / w);
+          w = maxW;
+        } else {
+          w = Math.round((w * maxH) / h);
+          h = maxH;
+        }
+      }
+      canvas.width = w;
+      canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      canvas.toBlob(function(blob) {
+        if (blob) {
+          callback(blob);
+        } else {
+          callback(file);
+        }
+      }, 'image/jpeg', 0.75);
+    };
+    img.onerror = function() {
+      callback(file);
+    };
+    img.src = e.target.result;
+  };
+  reader.onerror = function() {
+    callback(file);
+  };
+  reader.readAsDataURL(file);
+}
+
 // multi image upload for poster form
 function fileMultiPoster(input,catId){
   var files=Array.from(input.files);if(!files.length)return;
   toast('Uploading '+files.length+' image(s)…');
+  var prev=document.getElementById('pp_'+catId);
+  if(prev) prev.innerHTML = '<div style="font-size:.72rem;opacity:.6;text-align:center;padding:1rem;">⏳ Uploading ' + files.length + ' image(s)…</div>';
   _uploadMultiToStorage(files, function(urls){
     var existing=document.getElementById('pi_'+catId).value.trim();
     var lines=existing?existing.split('\n').map(function(s){return s.trim();}).filter(Boolean):[];
@@ -3202,27 +3252,29 @@ function dzDropMultiPoster(e,catId){
 function _uploadMultiToStorage(files, callback){
   var urls=new Array(files.length); var done=0;
   Array.from(files).forEach(function(f,i){
-    var r=new FileReader();
-    r.onload=function(ev){
-      var base64=ev.target.result.split(',')[1];
-      var formData=new FormData();
-      formData.append('image', base64);
-      fetch('https://api.imgbb.com/1/upload?key=a3100c9ebe9b3fe33548dcbe149421b9', {
-        method:'POST', body:formData
-      }).then(function(res){return res.json();}).then(function(data){
-        if(data&&data.data&&data.data.url){
-          urls[i]=data.data.url;
-        } else {
+    _compressImage(f, 1024, 1024, function(compressedFile){
+      var r=new FileReader();
+      r.onload=function(ev){
+        var base64=ev.target.result.split(',')[1];
+        var formData=new FormData();
+        formData.append('image', base64);
+        fetch('https://api.imgbb.com/1/upload?key=a3100c9ebe9b3fe33548dcbe149421b9', {
+          method:'POST', body:formData
+        }).then(function(res){return res.json();}).then(function(data){
+          if(data&&data.data&&data.data.url){
+            urls[i]=data.data.url;
+          } else {
+            urls[i]=ev.target.result;
+          }
+          done++; if(done===files.length) callback(urls);
+        }).catch(function(err){
+          console.error('ImgBB upload failed for',f.name,err);
           urls[i]=ev.target.result;
-        }
-        done++; if(done===files.length) callback(urls);
-      }).catch(function(err){
-        console.error('ImgBB upload failed for',f.name,err);
-        urls[i]=ev.target.result;
-        done++; if(done===files.length) callback(urls);
-      });
-    };
-    r.readAsDataURL(f);
+          done++; if(done===files.length) callback(urls);
+        });
+      };
+      r.readAsDataURL(compressedFile);
+    });
   });
 }
 function renderPosterPreviews(catId,imgs){
@@ -3444,12 +3496,25 @@ function addComboImgs(input){
   var grid = document.getElementById('comboImgGrid');
   if(grid) grid.innerHTML = '<div style="font-size:.7rem;color:var(--red);padding:.5rem;">⏳ Uploading '+files.length+' image'+(files.length>1?'s':'')+' to storage…</div>';
   _uploadMultiToStorage(files, function(urls){
-    urls.forEach(function(u){ if(u) PRICES.combo_imgs.push(u); });
+    var tooLarge = 0;
+    urls.forEach(function(u){
+      if(u) {
+        if(u.startsWith('data:') && u.length > 2.5 * 1024 * 1024) {
+          tooLarge++;
+        } else {
+          PRICES.combo_imgs.push(u);
+        }
+      }
+    });
     // Auto-save immediately so images persist without needing "Save All"
     ss('pl2_pr', PRICES);
     _renderComboImgGrid();
     renderComboArt();
-    toast(files.length + ' image'+(files.length>1?'s':'')+' uploaded & saved ✅');
+    if (tooLarge > 0) {
+      alert(tooLarge + ' image(s) failed to upload and were too large to save locally. Please try smaller files.');
+    } else {
+      toast(files.length + ' image'+(files.length>1?'s':'')+' uploaded & saved ✅');
+    }
   });
 }
 
@@ -3498,9 +3563,22 @@ function addComboImgsIEX(input){
   var grid = document.getElementById('iexComboGrid');
   if(grid) grid.innerHTML = '<div style="font-size:.7rem;color:var(--red);padding:.5rem;">⏳ Uploading '+files.length+' image'+(files.length>1?'s':'')+' to storage…</div>';
   _uploadMultiToStorage(files, function(urls){
-    urls.forEach(function(u){ if(u) PRICES.combo_imgs.push(u); });
+    var tooLarge = 0;
+    urls.forEach(function(u){
+      if(u) {
+        if(u.startsWith('data:') && u.length > 2.5 * 1024 * 1024) {
+          tooLarge++;
+        } else {
+          PRICES.combo_imgs.push(u);
+        }
+      }
+    });
     _refreshIEXComboBody();
-    toast(files.length + ' image'+(files.length>1?'s':'')+' uploaded!');
+    if (tooLarge > 0) {
+      alert(tooLarge + ' image(s) failed to upload and were too large. Please check your connection.');
+    } else {
+      toast(files.length + ' image'+(files.length>1?'s':'')+' uploaded!');
+    }
   });
 }
 
@@ -3742,32 +3820,34 @@ function dzLeave(el){el.classList.remove('drag-over');}
 function dzDropSingle(e,inputId,previewId){e.preventDefault();dzLeave(e.currentTarget);const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){_uploadImageFile(f,inputId,previewId);}}
 function fileSingle(input,inputId,previewId){const f=input.files[0];if(f){_uploadImageFile(f,inputId,previewId);}}
 function _uploadImageFile(file,inputId,previewId){
-  var r=new FileReader();
-  r.onload=function(e){
-    var dataUrl=e.target.result;
-    var preview=document.getElementById(previewId);
-    preview.innerHTML='<img class="img-preview cover" src="'+dataUrl+'"><div id="'+previewId+'_status" style="font-size:.72rem;opacity:.6;margin-top:.3rem;text-align:center;">⏳ Uploading…</div>';
-    // Upload to ImgBB (free image hosting)
-    var formData=new FormData();
-    formData.append('image', dataUrl.split(',')[1]);
-    fetch('https://api.imgbb.com/1/upload?key=a3100c9ebe9b3fe33548dcbe149421b9', {
-      method:'POST', body:formData
-    }).then(function(res){return res.json();}).then(function(data){
-      if(data&&data.data&&data.data.url){
-        document.getElementById(inputId).value=data.data.url;
+  _compressImage(file, 1024, 1024, function(compressedFile){
+    var r=new FileReader();
+    r.onload=function(e){
+      var dataUrl=e.target.result;
+      var preview=document.getElementById(previewId);
+      preview.innerHTML='<img class="img-preview cover" src="'+dataUrl+'"><div id="'+previewId+'_status" style="font-size:.72rem;opacity:.6;margin-top:.3rem;text-align:center;">⏳ Uploading…</div>';
+      // Upload to ImgBB (free image hosting)
+      var formData=new FormData();
+      formData.append('image', dataUrl.split(',')[1]);
+      fetch('https://api.imgbb.com/1/upload?key=a3100c9ebe9b3fe33548dcbe149421b9', {
+        method:'POST', body:formData
+      }).then(function(res){return res.json();}).then(function(data){
+        if(data&&data.data&&data.data.url){
+          document.getElementById(inputId).value=data.data.url;
+          var st=document.getElementById(previewId+'_status');
+          if(st)st.innerHTML='✅ Uploaded';
+        } else {
+          throw new Error('No URL in response');
+        }
+      }).catch(function(err){
+        console.error('ImgBB upload failed:',err);
+        document.getElementById(inputId).value=dataUrl;
         var st=document.getElementById(previewId+'_status');
-        if(st)st.innerHTML='✅ Uploaded';
-      } else {
-        throw new Error('No URL in response');
-      }
-    }).catch(function(err){
-      console.error('ImgBB upload failed:',err);
-      document.getElementById(inputId).value=dataUrl;
-      var st=document.getElementById(previewId+'_status');
-      if(st)st.innerHTML='⚠️ Upload failed — using local data. Large images may not save.';
-    });
-  };
-  r.readAsDataURL(file);
+        if(st)st.innerHTML='⚠️ Upload failed — using local data.';
+      });
+    };
+    r.readAsDataURL(compressedFile);
+  });
 }
 function esc(s){return(s||'').replace(/'/g,'&apos;').replace(/"/g,'&quot;');}
 
@@ -4540,31 +4620,33 @@ function openPolEditPopover(e, pid){
 }
 function iexPolImgFile(input, pid){
   var f = input.files[0]; if(!f) return;
-  var r = new FileReader();
-  r.onload = function(ev){
-    var dataUrl = ev.target.result;
-    // Show local preview immediately
-    var prev = document.getElementById('iex-polprev');
-    if(prev) prev.innerHTML = '<img src="' + dataUrl + '" style="width:100%;max-height:120px;object-fit:cover;border:1px solid #333;"><div id="iex-polimg-status" style="font-size:.65rem;opacity:.6;margin-top:.3rem;text-align:center;">⏳ Uploading…</div>';
-    // Upload to ImgBB so a permanent URL is saved (not raw base64 which exceeds Firebase limits)
-    var formData = new FormData();
-    formData.append('image', dataUrl.split(',')[1]);
-    fetch('https://api.imgbb.com/1/upload?key=a3100c9ebe9b3fe33548dcbe149421b9', {
-      method: 'POST', body: formData
-    }).then(function(res){ return res.json(); }).then(function(data){
-      if(data && data.data && data.data.url){
-        document.getElementById('iex-polimg').value = data.data.url;
+  _compressImage(f, 1024, 1024, function(compressedFile){
+    var r = new FileReader();
+    r.onload = function(ev){
+      var dataUrl = ev.target.result;
+      // Show local preview immediately
+      var prev = document.getElementById('iex-polprev');
+      if(prev) prev.innerHTML = '<img src="' + dataUrl + '" style="width:100%;max-height:120px;object-fit:cover;border:1px solid #333;"><div id="iex-polimg-status" style="font-size:.65rem;opacity:.6;margin-top:.3rem;text-align:center;">⏳ Uploading…</div>';
+      // Upload to ImgBB so a permanent URL is saved (not raw base64 which exceeds Firebase limits)
+      var formData = new FormData();
+      formData.append('image', dataUrl.split(',')[1]);
+      fetch('https://api.imgbb.com/1/upload?key=a3100c9ebe9b3fe33548dcbe149421b9', {
+        method: 'POST', body: formData
+      }).then(function(res){ return res.json(); }).then(function(data){
+        if(data && data.data && data.data.url){
+          document.getElementById('iex-polimg').value = data.data.url;
+          var st = document.getElementById('iex-polimg-status');
+          if(st) st.innerHTML = '✅ Uploaded';
+        } else { throw new Error('No URL'); }
+      }).catch(function(err){
+        console.warn('ImgBB upload failed, falling back to base64:', err);
+        document.getElementById('iex-polimg').value = dataUrl;
         var st = document.getElementById('iex-polimg-status');
-        if(st) st.innerHTML = '✅ Uploaded';
-      } else { throw new Error('No URL'); }
-    }).catch(function(err){
-      console.warn('ImgBB upload failed, falling back to base64:', err);
-      document.getElementById('iex-polimg').value = dataUrl;
-      var st = document.getElementById('iex-polimg-status');
-      if(st) st.innerHTML = '⚠️ Upload failed — image may not persist after refresh';
-    });
-  };
-  r.readAsDataURL(f);
+        if(st) st.innerHTML = '⚠️ Upload failed — using local data.';
+      });
+    };
+    r.readAsDataURL(compressedFile);
+  });
 }
 function savePolFromPopover(ev, pid){
   if(!window._adminMode) return;
@@ -4619,31 +4701,33 @@ function openMagEditPopover(e, mid){
 }
 function iexMagImgFile(input, mid){
   var f = input.files[0]; if(!f) return;
-  var r = new FileReader();
-  r.onload = function(ev){
-    var dataUrl = ev.target.result;
-    // Show local preview immediately
-    var prev = document.getElementById('iex-magprev');
-    if(prev) prev.innerHTML = '<img src="' + dataUrl + '" style="width:100%;max-height:120px;object-fit:cover;border:1px solid #333;"><div id="iex-magimg-status" style="font-size:.65rem;opacity:.6;margin-top:.3rem;text-align:center;">⏳ Uploading…</div>';
-    // Upload to ImgBB so a permanent URL is saved (not raw base64 which exceeds Firebase limits)
-    var formData = new FormData();
-    formData.append('image', dataUrl.split(',')[1]);
-    fetch('https://api.imgbb.com/1/upload?key=a3100c9ebe9b3fe33548dcbe149421b9', {
-      method: 'POST', body: formData
-    }).then(function(res){ return res.json(); }).then(function(data){
-      if(data && data.data && data.data.url){
-        document.getElementById('iex-magimg').value = data.data.url;
+  _compressImage(f, 1024, 1024, function(compressedFile){
+    var r = new FileReader();
+    r.onload = function(ev){
+      var dataUrl = ev.target.result;
+      // Show local preview immediately
+      var prev = document.getElementById('iex-magprev');
+      if(prev) prev.innerHTML = '<img src="' + dataUrl + '" style="width:100%;max-height:120px;object-fit:cover;border:1px solid #333;"><div id="iex-magimg-status" style="font-size:.65rem;opacity:.6;margin-top:.3rem;text-align:center;">⏳ Uploading…</div>';
+      // Upload to ImgBB so a permanent URL is saved (not raw base64 which exceeds Firebase limits)
+      var formData = new FormData();
+      formData.append('image', dataUrl.split(',')[1]);
+      fetch('https://api.imgbb.com/1/upload?key=a3100c9ebe9b3fe33548dcbe149421b9', {
+        method: 'POST', body: formData
+      }).then(function(res){ return res.json(); }).then(function(data){
+        if(data && data.data && data.data.url){
+          document.getElementById('iex-magimg').value = data.data.url;
+          var st = document.getElementById('iex-magimg-status');
+          if(st) st.innerHTML = '✅ Uploaded';
+        } else { throw new Error('No URL'); }
+      }).catch(function(err){
+        console.warn('ImgBB upload failed, falling back to base64:', err);
+        document.getElementById('iex-magimg').value = dataUrl;
         var st = document.getElementById('iex-magimg-status');
-        if(st) st.innerHTML = '✅ Uploaded';
-      } else { throw new Error('No URL'); }
-    }).catch(function(err){
-      console.warn('ImgBB upload failed, falling back to base64:', err);
-      document.getElementById('iex-magimg').value = dataUrl;
-      var st = document.getElementById('iex-magimg-status');
-      if(st) st.innerHTML = '⚠️ Upload failed — image may not persist after refresh';
-    });
-  };
-  r.readAsDataURL(f);
+        if(st) st.innerHTML = '⚠️ Upload failed — using local data.';
+      });
+    };
+    r.readAsDataURL(compressedFile);
+  });
 }
 function saveMagFromPopover(ev, mid){
   if(!window._adminMode) return;
