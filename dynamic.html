@@ -3231,6 +3231,7 @@ function _compressImage(file, maxW, maxH, callback) {
 // multi image upload for poster form
 function fileMultiPoster(input,catId){
   var files=Array.from(input.files);if(!files.length)return;
+  try{ input.value=''; }catch(e){}
   toast('Uploading '+files.length+' image(s)…');
   var prev=document.getElementById('pp_'+catId);
   if(prev) prev.innerHTML = '<div style="font-size:.72rem;opacity:.6;text-align:center;padding:1rem;">⏳ Uploading ' + files.length + ' image(s)…</div>';
@@ -3502,11 +3503,25 @@ function addComboImgs(input){
   var grid = document.getElementById('comboImgGrid');
   if(grid) grid.innerHTML = '<div style="font-size:.7rem;color:var(--red);padding:.5rem;">⏳ Uploading '+files.length+' image'+(files.length>1?'s':'')+' to storage…</div>';
   _uploadMultiToStorage(files, function(urls){
-    urls.forEach(function(u){ if(u) PRICES.combo_imgs.push(u); });
+    var tooLarge = 0;
+    urls.forEach(function(u){
+      if(u) {
+        if(u.startsWith('data:') && u.length > 2.5 * 1024 * 1024) {
+          tooLarge++;
+        } else {
+          PRICES.combo_imgs.push(u);
+        }
+      }
+    });
+    // Auto-save immediately so images persist without needing "Save All"
     ss('pl2_pr', PRICES);
     _renderComboImgGrid();
     renderComboArt();
-    toast(urls.length + ' image'+(urls.length>1?'s':'')+' uploaded & saved ✅');
+    if (tooLarge > 0) {
+      alert(tooLarge + ' image(s) failed to upload and were too large to save locally. Please try smaller files.');
+    } else {
+      toast(files.length + ' image'+(files.length>1?'s':'')+' uploaded & saved ✅');
+    }
   });
 }
 
@@ -3555,10 +3570,19 @@ function addComboImgsIEX(input){
   var grid = document.getElementById('iexComboGrid');
   if(grid) grid.innerHTML = '<div style="font-size:.7rem;color:var(--red);padding:.5rem;">⏳ Uploading '+files.length+' image'+(files.length>1?'s':'')+' to storage…</div>';
   _uploadMultiToStorage(files, function(urls){
-    urls.forEach(function(u){ if(u) PRICES.combo_imgs.push(u); });
+    var tooLarge = 0;
+    urls.forEach(function(u){
+      if(u) {
+        if(u.startsWith('data:') && u.length > 2.5 * 1024 * 1024) {
+          tooLarge++;
+        } else {
+          PRICES.combo_imgs.push(u);
+        }
+      }
+    });
     _refreshIEXComboBody();
-    if (false) {  // placeholder kept for structure
-      alert('');
+    if (tooLarge > 0) {
+      alert(tooLarge + ' image(s) failed to upload and were too large. Please check your connection.');
     } else {
       toast(files.length + ' image'+(files.length>1?'s':'')+' uploaded!');
     }
@@ -3801,7 +3825,7 @@ function toggleForm(id){const el=document.getElementById(id);el.style.display=el
 function dzOver(e,el){e.preventDefault();el.classList.add('drag-over');}
 function dzLeave(el){el.classList.remove('drag-over');}
 function dzDropSingle(e,inputId,previewId){e.preventDefault();dzLeave(e.currentTarget);const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){_uploadImageFile(f,inputId,previewId);}}
-function fileSingle(input,inputId,previewId){const f=input.files[0];if(f){_uploadImageFile(f,inputId,previewId);}}
+function fileSingle(input,inputId,previewId){const f=input.files[0];if(f){try{input.value='';}catch(e){}_uploadImageFile(f,inputId,previewId);}}
 function _uploadImageFile(file,inputId,previewId){
   _compressImage(file, 1024, 1024, function(compressedFile){
     var r=new FileReader();
@@ -3824,9 +3848,9 @@ function _uploadImageFile(file,inputId,previewId){
         }
       }).catch(function(err){
         console.error('ImgBB upload failed:',err);
+        document.getElementById(inputId).value=dataUrl;
         var st=document.getElementById(previewId+'_status');
-        if(st)st.innerHTML='⚠️ Upload failed. Please try again or paste a URL.';
-        toast('⚠️ Image upload failed. Please retry.');
+        if(st)st.innerHTML='⚠️ Upload failed — using local data.';
       });
     };
     r.readAsDataURL(compressedFile);
@@ -4387,6 +4411,7 @@ function renderPosterImgPopover(e, pid, catId){
 }
 function iexAddPosterFiles(input, pid, catId){
   var files = Array.from(input.files); if(!files.length) return;
+  try{ input.value=''; }catch(e){}
   toast('Uploading ' + files.length + ' image(s)…');
   _uploadMultiToStorage(files, function(urls){
     _iexPosterImgs = _iexPosterImgs.concat(urls);
@@ -4479,6 +4504,7 @@ function openAddPosterInline(){
 }
 function ailFileUpload(input){
   var files = Array.from(input.files); if(!files.length) return;
+  try{ input.value=''; }catch(e){}
   toast('Uploading ' + files.length + ' image(s)…');
   _uploadMultiToStorage(files, function(urls){
     _ailImgs = _ailImgs.concat(urls);
@@ -4622,10 +4648,10 @@ function iexPolImgFile(input, pid){
           if(st) st.innerHTML = '✅ Uploaded';
         } else { throw new Error('No URL'); }
       }).catch(function(err){
-        console.warn('ImgBB upload failed for polaroid:', err);
+        console.warn('ImgBB upload failed, falling back to base64:', err);
+        document.getElementById('iex-polimg').value = dataUrl;
         var st = document.getElementById('iex-polimg-status');
-        if(st) st.innerHTML = '⚠️ Upload failed. Please retry or paste a URL.';
-        toast('⚠️ Polaroid image upload failed. Please retry.');
+        if(st) st.innerHTML = '⚠️ Upload failed — using local data.';
       });
     };
     r.readAsDataURL(compressedFile);
@@ -4703,10 +4729,10 @@ function iexMagImgFile(input, mid){
           if(st) st.innerHTML = '✅ Uploaded';
         } else { throw new Error('No URL'); }
       }).catch(function(err){
-        console.warn('ImgBB upload failed for magazine:', err);
+        console.warn('ImgBB upload failed, falling back to base64:', err);
+        document.getElementById('iex-magimg').value = dataUrl;
         var st = document.getElementById('iex-magimg-status');
-        if(st) st.innerHTML = '⚠️ Upload failed. Please retry or paste a URL.';
-        toast('⚠️ Magazine image upload failed. Please retry.');
+        if(st) st.innerHTML = '⚠️ Upload failed — using local data.';
       });
     };
     r.readAsDataURL(compressedFile);
