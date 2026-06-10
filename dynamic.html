@@ -3432,18 +3432,12 @@ function addComboImgs(input){
   if(!files.length) return;
   input.value = '';
   if(!Array.isArray(PRICES.combo_imgs)) PRICES.combo_imgs = [];
-  var done = 0;
-  files.forEach(function(f){
-    var r = new FileReader();
-    r.onload = function(e){
-      PRICES.combo_imgs.push(e.target.result);
-      done++;
-      if(done === files.length){
-        _renderComboImgGrid();
-        toast(files.length + ' image'+(files.length>1?'s':'')+' added — click Save All to apply.');
-      }
-    };
-    r.readAsDataURL(f);
+  var grid = document.getElementById('comboImgGrid');
+  if(grid) grid.innerHTML = '<div style="font-size:.7rem;color:var(--red);padding:.5rem;">⏳ Uploading '+files.length+' image'+(files.length>1?'s':'')+' to storage…</div>';
+  _uploadMultiToStorage(files, function(urls){
+    urls.forEach(function(u){ if(u) PRICES.combo_imgs.push(u); });
+    _renderComboImgGrid();
+    toast(files.length + ' image'+(files.length>1?'s':'')+' uploaded — click Save All to apply.');
   });
 }
 
@@ -3486,15 +3480,13 @@ function addComboImgsIEX(input){
   if(!files.length) return;
   input.value = '';
   if(!Array.isArray(PRICES.combo_imgs)) PRICES.combo_imgs = [];
-  var done = 0;
-  files.forEach(function(f){
-    var r = new FileReader();
-    r.onload = function(e){
-      PRICES.combo_imgs.push(e.target.result);
-      done++;
-      if(done === files.length) _refreshIEXComboBody();
-    };
-    r.readAsDataURL(f);
+  // Show uploading indicator
+  var grid = document.getElementById('iexComboGrid');
+  if(grid) grid.innerHTML = '<div style="font-size:.7rem;color:var(--red);padding:.5rem;">⏳ Uploading '+files.length+' image'+(files.length>1?'s':'')+' to storage…</div>';
+  _uploadMultiToStorage(files, function(urls){
+    urls.forEach(function(u){ if(u) PRICES.combo_imgs.push(u); });
+    _refreshIEXComboBody();
+    toast(files.length + ' image'+(files.length>1?'s':'')+' uploaded!');
   });
 }
 
