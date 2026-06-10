@@ -2870,12 +2870,14 @@ async function verifyTrxId(trxId){
 }
 
 async function submitOrder(){
+  // Open WA window immediately (must be synchronous / before any await to avoid popup blocker)
+  const _waWin = window.open('about:blank','_blank','noopener');
   const name=document.getElementById('custName').value.trim();
   const phone=document.getElementById('custPhone').value.trim();
   const address=document.getElementById('custAddress').value.trim();
   const email=document.getElementById('custEmail')?document.getElementById('custEmail').value.trim():'';
-  if(!name||!phone||!address){alert('Please fill in Name, Phone and Address.');return;}
-  if(!/^[0-9+\-\s]{7,15}$/.test(phone)){alert('Please enter a valid phone number.');return;}
+  if(!name||!phone||!address){alert('Please fill in Name, Phone and Address.');_waWin&&_waWin.close();return;}
+  if(!/^[0-9+\-\s]{7,15}$/.test(phone)){alert('Please enter a valid phone number.');_waWin&&_waWin.close();return;}
 
   // ── VERIFY BKASH TRXID ──
   const _isOwner=phone.replace(/[\s\-+]/g,'')===('16969696969');
@@ -2886,6 +2888,7 @@ async function submitOrder(){
     if(!trxId){
       if(trxMsg){trxMsg.style.color='#e11d48';trxMsg.textContent='Please enter your bKash Transaction ID.';}
       document.getElementById('bkashTrxId')?.focus();
+      _waWin&&_waWin.close();
       return;
     }
     if(confirmBtn){confirmBtn.disabled=true;confirmBtn.textContent='Verifying payment…';}
@@ -2893,6 +2896,7 @@ async function submitOrder(){
     if(!verifyResult.valid){
       if(trxMsg){trxMsg.style.color='#e11d48';trxMsg.textContent='❌ '+verifyResult.reason;}
       if(confirmBtn){confirmBtn.disabled=false;confirmBtn.textContent='✓ CONFIRM ORDER';}
+      _waWin&&_waWin.close();
       return;
     }
     if(trxMsg){trxMsg.style.color='#22c55e';trxMsg.textContent='✓ Payment verified!';}
@@ -2958,10 +2962,8 @@ async function submitOrder(){
     `🕐 ${order.date}`
   ].join('\n');
   const waUrl=`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(waLines)}`;
-  // Use a temporary link to avoid popup blocker
-  const waLink=document.createElement('a');
-  waLink.href=waUrl;waLink.target='_blank';waLink.rel='noopener';
-  document.body.appendChild(waLink);waLink.click();document.body.removeChild(waLink);
+  // Navigate the pre-opened blank tab (opened before awaits to bypass popup blocker)
+  if(_waWin && !_waWin.closed){ _waWin.location.href=waUrl; } else { window.open(waUrl,'_blank','noopener'); }
 
   // ── TELEGRAM NOTIFICATION ──
   const itemLines=cart.map((it,i)=>{
