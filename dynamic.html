@@ -3050,7 +3050,9 @@ function hideCatForm(){document.getElementById('catFormWrap').style.display='non
 function saveCategory(){
   const name=document.getElementById('cat-name').value.trim();
   const img=document.getElementById('cat-img').value.trim();
-  if(!name||!img){alert('Name and image required.');return;}
+  if(!name){alert('Category name required.');return;}
+  if(!img){alert('Cover image required. If you uploaded a file, wait for the ✅ Uploaded status before saving.');return;}
+  if(img.startsWith('data:')){alert('Image is still uploading or upload failed. Please wait for the ✅ Uploaded status, or paste an image URL directly.');return;}
   const eid=document.getElementById('cat-edit-id').value;
   if(eid){const c=cats.find(x=>x.id==eid);if(c)Object.assign(c,{name,img});}
   else{cats.push({id:nid++,name,img});ss('pl2_nid',nid);}
@@ -3708,8 +3710,35 @@ function renderLiveCarts(){
 function toggleForm(id){const el=document.getElementById(id);el.style.display=el.style.display==='none'?'block':'none';}
 function dzOver(e,el){e.preventDefault();el.classList.add('drag-over');}
 function dzLeave(el){el.classList.remove('drag-over');}
-function dzDropSingle(e,inputId,previewId){e.preventDefault();dzLeave(e.currentTarget);const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){const r=new FileReader();r.onload=ev=>{document.getElementById(inputId).value=ev.target.result;document.getElementById(previewId).innerHTML=`<img class="img-preview cover" src="${ev.target.result}">`;};r.readAsDataURL(f);}}
-function fileSingle(input,inputId,previewId){const f=input.files[0];if(f){const r=new FileReader();r.onload=e=>{document.getElementById(inputId).value=e.target.result;document.getElementById(previewId).innerHTML=`<img class="img-preview cover" src="${e.target.result}">`;};r.readAsDataURL(f);}}
+function dzDropSingle(e,inputId,previewId){e.preventDefault();dzLeave(e.currentTarget);const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){_uploadImageFile(f,inputId,previewId);}}
+function fileSingle(input,inputId,previewId){const f=input.files[0];if(f){_uploadImageFile(f,inputId,previewId);}}
+function _uploadImageFile(file,inputId,previewId){
+  var r=new FileReader();
+  r.onload=function(e){
+    var dataUrl=e.target.result;
+    var preview=document.getElementById(previewId);
+    preview.innerHTML='<img class="img-preview cover" src="'+dataUrl+'"><div id="'+previewId+'_status" style="font-size:.72rem;opacity:.6;margin-top:.3rem;text-align:center;">⏳ Uploading…</div>';
+    if(_fbStorage){
+      var path='pl2/images/'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+      var ref=_fbStorage.ref(path);
+      ref.put(file).then(function(snap){return snap.ref.getDownloadURL();}).then(function(url){
+        document.getElementById(inputId).value=url;
+        var st=document.getElementById(previewId+'_status');
+        if(st)st.innerHTML='✅ Uploaded';
+      }).catch(function(err){
+        console.error('Storage upload failed:',err);
+        document.getElementById(inputId).value=dataUrl;
+        var st=document.getElementById(previewId+'_status');
+        if(st)st.innerHTML='⚠️ Cloud upload failed — using local data. Large images may not save.';
+      });
+    } else {
+      document.getElementById(inputId).value=dataUrl;
+      var st=document.getElementById(previewId+'_status');
+      if(st)st.innerHTML='⚠️ Storage not connected.';
+    }
+  };
+  r.readAsDataURL(file);
+}
 function esc(s){return(s||'').replace(/'/g,'&apos;').replace(/"/g,'&quot;');}
 
 // ── HERO PANELS ──
