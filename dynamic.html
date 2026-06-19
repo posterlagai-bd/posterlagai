@@ -452,7 +452,7 @@ nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-co
 /* ── COMBO ── */
 .combo-sec{background:linear-gradient(135deg,#0d0d0d,#110000,#0d0d0d);border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a;padding:5rem;}
 .combo-inner{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;}
-.combo-art{position:relative;aspect-ratio:.75;max-width:380px;margin:0 auto;}
+.combo-art{position:relative;aspect-ratio:.75;max-width:380px;min-height:200px;margin:0 auto;}
 .combo-wall{position:absolute;inset:0;background:linear-gradient(160deg,#1a0000,#0d0d0d);border:1px solid #2a2a2a;overflow:hidden;display:flex;align-items:center;justify-content:center;}
 /* ── COMBO SLIDESHOW ── */
 .combo-slide-track{position:absolute;inset:0;display:flex;transition:transform .5s cubic-bezier(.4,0,.2,1);}
@@ -2058,6 +2058,7 @@ let magazines=gs('pl2_mags',DEF_MAGS);
 let reviews=gs('pl2_revs',DEF_REVS);
 let orders=gs('pl2_orders',[]);
 let PRICES=gs('pl2_pr',DEF_PR);
+try{var _ci=localStorage.getItem('pl2_combo_imgs');if(_ci){var _arr=JSON.parse(_ci);if(Array.isArray(_arr))PRICES.combo_imgs=_arr;}}catch(e){}
 let nid=gs('pl2_nid',500);
 let cart=[];
 
@@ -2253,6 +2254,7 @@ function addPosterToCart(pid){
 const catAutoTimers={};
 function renderStore(){
   PRICES=gs('pl2_pr',DEF_PR);
+  try{var _ci=localStorage.getItem('pl2_combo_imgs');if(_ci){var _arr=JSON.parse(_ci);if(Array.isArray(_arr))PRICES.combo_imgs=_arr;}}catch(e){}
   renderCategories();
   renderPolaroidCarousel();
   renderMagazines();
@@ -3045,7 +3047,8 @@ function showAdminPage(id){
 }
 function refreshAdmin(){updateDash();renderAdminCats();loadPrices();}
 function updateDash(){
-  PRICES=gs('pl2_pr',DEF_PR);cats=gs('pl2_cats',DEF_CATS);posters=gs('pl2_posters',DEF_POSTERS);polaroids=gs('pl2_pols',DEF_POLS);reviews=gs('pl2_revs',DEF_REVS);orders=gs('pl2_orders',[]);
+  PRICES=gs('pl2_pr',DEF_PR);
+  try{var _ci=localStorage.getItem('pl2_combo_imgs');if(_ci){var _arr=JSON.parse(_ci);if(Array.isArray(_arr))PRICES.combo_imgs=_arr;}}catch(e){}cats=gs('pl2_cats',DEF_CATS);posters=gs('pl2_posters',DEF_POSTERS);polaroids=gs('pl2_pols',DEF_POLS);reviews=gs('pl2_revs',DEF_REVS);orders=gs('pl2_orders',[]);
   document.getElementById('dash-cat').textContent=cats.length;
   document.getElementById('dash-post').textContent=posters.length;
   document.getElementById('dash-pol').textContent=polaroids.length;
@@ -3061,7 +3064,7 @@ function saveCategory(){
   const img=document.getElementById('cat-img').value.trim();
   if(!name){alert('Category name required.');return;}
   if(!img){alert('Cover image required. If you uploaded a file, wait for the ✅ Uploaded status before saving.');return;}
-  if(img.startsWith('data:') && img.length > 2.5 * 1024 * 1024){alert('Cover image upload failed and the file is too large to save. Please try a smaller file or check your connection.');return;}
+  // Accept all image sources including base64 fallbacks
   const eid=document.getElementById('cat-edit-id').value;
   if(eid){const c=cats.find(x=>x.id==eid);if(c)Object.assign(c,{name,img});}
   else{cats.push({id:nid++,name,img});ss('pl2_nid',nid);}
@@ -3235,13 +3238,12 @@ function fileMultiPoster(input,catId){
   var prev=document.getElementById('pp_'+catId);
   if(prev) prev.innerHTML = '<div style="font-size:.72rem;opacity:.6;text-align:center;padding:1rem;">⏳ Uploading ' + files.length + ' image(s)…</div>';
   _uploadMultiToStorage(files, function(urls){
-    var good=(urls||[]).filter(function(u){return u&&u.length>0;});
     var existing=document.getElementById('pi_'+catId).value.trim();
     var lines=existing?existing.split('\n').map(function(s){return s.trim();}).filter(Boolean):[];
-    var merged=lines.concat(good);
+    var merged=lines.concat(urls);
     document.getElementById('pi_'+catId).value=merged.join('\n');
     renderPosterPreviews(catId,merged);
-    toast(good.length+' image(s) uploaded ✅');
+    toast(urls.length+' image(s) uploaded ✅');
   });
 }
 function dzDropMultiPoster(e,catId){
@@ -3283,9 +3285,7 @@ function _uploadMultiToStorage(files, callback){
   uploadNext(0);
 }
 function renderPosterPreviews(catId,imgs){
-  var el = document.getElementById('pp_'+catId);
-  if(!el) return;
-  el.innerHTML = imgs.filter(Boolean).map((src,i)=>`<img class="img-preview ${i===0?'cover':''}" src="${src}" title="Slide ${i+1}">`).join('');
+  document.getElementById('pp_'+catId).innerHTML=imgs.filter(Boolean).map((src,i)=>`<img class="img-preview ${i===0?'cover':''}" src="${src}" title="Slide ${i+1}">`).join('');
 }
 
 // POLAROIDS ADMIN
@@ -3447,6 +3447,7 @@ function comboMove(dir){
 }
 function loadPrices(){
   PRICES=gs('pl2_pr',DEF_PR);
+  try{var _ci=localStorage.getItem('pl2_combo_imgs');if(_ci){var _arr=JSON.parse(_ci);if(Array.isArray(_arr))PRICES.combo_imgs=_arr;}}catch(e){}
   ['a5','a4','a3','pol','m8','m12','m16','combo'].forEach(k=>{const el=document.getElementById('pr-'+k);if(el)el.value=PRICES[k];});
   var ci=document.getElementById('pr-combo-img');if(ci)ci.value=PRICES.combo_img||'';
   document.getElementById('pr-dd').value=PRICES.dd;
@@ -3499,36 +3500,25 @@ function addComboImgs(input){
   input.value = '';
   // Reload fresh from storage so existing combo_imgs are not lost
   PRICES = gs('pl2_pr', DEF_PR);
+  try{var _ci=localStorage.getItem('pl2_combo_imgs');if(_ci){var _arr=JSON.parse(_ci);if(Array.isArray(_arr))PRICES.combo_imgs=_arr;}}catch(e){}
   if(!Array.isArray(PRICES.combo_imgs)) PRICES.combo_imgs = [];
   var grid = document.getElementById('comboImgGrid');
   if(grid) grid.innerHTML = '<div style="font-size:.7rem;color:var(--red);padding:.5rem;">⏳ Uploading '+files.length+' image'+(files.length>1?'s':'')+' to storage…</div>';
   _uploadMultiToStorage(files, function(urls){
-    var tooLarge = 0;
-    urls.forEach(function(u){
-      if(u) {
-        if(u.startsWith('data:') && u.length > 2.5 * 1024 * 1024) {
-          tooLarge++;
-        } else {
-          PRICES.combo_imgs.push(u);
-        }
-      }
-    });
-    // Auto-save immediately so images persist without needing "Save All"
-    ss('pl2_pr', PRICES);
+    urls.forEach(function(u){ if(u && u.length > 0) PRICES.combo_imgs.push(u); });
+    try { localStorage.setItem('pl2_combo_imgs', JSON.stringify(PRICES.combo_imgs)); } catch(e){}
+    if(window._fbDb) window._fbDb.ref('pl2/pl2_combo_imgs').set(JSON.stringify(PRICES.combo_imgs));
     _renderComboImgGrid();
     renderComboArt();
-    if (tooLarge > 0) {
-      alert(tooLarge + ' image(s) failed to upload and were too large to save locally. Please try smaller files.');
-    } else {
-      toast(files.length + ' image'+(files.length>1?'s':'')+' uploaded & saved ✅');
-    }
+    toast(urls.length + ' image'+(urls.length>1?'s':'')+' uploaded & saved ✅');
   });
 }
 
 function removeComboImg(i){
   if(!Array.isArray(PRICES.combo_imgs)) return;
   PRICES.combo_imgs.splice(i, 1);
-  ss('pl2_pr', PRICES);
+  try { localStorage.setItem('pl2_combo_imgs', JSON.stringify(PRICES.combo_imgs)); } catch(e){}
+  if(window._fbDb) window._fbDb.ref('pl2/pl2_combo_imgs').set(JSON.stringify(PRICES.combo_imgs));
   _renderComboImgGrid();
   renderComboArt();
 }
@@ -3566,26 +3556,15 @@ function addComboImgsIEX(input){
   if(!files.length) return;
   input.value = '';
   if(!Array.isArray(PRICES.combo_imgs)) PRICES.combo_imgs = [];
-  // Show uploading indicator
   var grid = document.getElementById('iexComboGrid');
   if(grid) grid.innerHTML = '<div style="font-size:.7rem;color:var(--red);padding:.5rem;">⏳ Uploading '+files.length+' image'+(files.length>1?'s':'')+' to storage…</div>';
   _uploadMultiToStorage(files, function(urls){
-    var tooLarge = 0;
-    urls.forEach(function(u){
-      if(u) {
-        if(u.startsWith('data:') && u.length > 2.5 * 1024 * 1024) {
-          tooLarge++;
-        } else {
-          PRICES.combo_imgs.push(u);
-        }
-      }
-    });
+    urls.forEach(function(u){ if(u && u.length > 0) PRICES.combo_imgs.push(u); });
+    try { localStorage.setItem('pl2_combo_imgs', JSON.stringify(PRICES.combo_imgs)); } catch(e){}
+    if(window._fbDb) window._fbDb.ref('pl2/pl2_combo_imgs').set(JSON.stringify(PRICES.combo_imgs));
     _refreshIEXComboBody();
-    if (tooLarge > 0) {
-      alert(tooLarge + ' image(s) failed to upload and were too large. Please check your connection.');
-    } else {
-      toast(files.length + ' image'+(files.length>1?'s':'')+' uploaded!');
-    }
+    renderComboArt();
+    toast(urls.length + ' image'+(urls.length>1?'s':'')+' uploaded!');
   });
 }
 
@@ -3604,7 +3583,8 @@ function _refreshIEXComboBody(){
 
 function saveComboImgsIEX(){
   if(!Array.isArray(PRICES.combo_imgs)) PRICES.combo_imgs = [];
-  ss('pl2_pr', PRICES);
+  try { localStorage.setItem('pl2_combo_imgs', JSON.stringify(PRICES.combo_imgs)); } catch(e){}
+  if(window._fbDb) window._fbDb.ref('pl2/pl2_combo_imgs').set(JSON.stringify(PRICES.combo_imgs));
   renderComboArt();
   _renderComboImgGrid();
   closeIEX();
@@ -4335,13 +4315,9 @@ function openCatEditPopover(e, catId){
 }
 function iexCatImgFile(input, catId){
   var f = input.files[0]; if(!f) return;
-  var r = new FileReader();
-  r.onload = function(ev){
-    document.getElementById('iex-catimg').value = ev.target.result;
-    var prev = document.getElementById('iex-catprev');
-    if(prev) prev.innerHTML = '<img src="' + ev.target.result + '" style="width:100%;max-height:120px;object-fit:cover;border:1px solid #333;">';
-  };
-  r.readAsDataURL(f);
+  var prev = document.getElementById('iex-catprev');
+  if(prev) prev.innerHTML = '<div style="font-size:.72rem;opacity:.6;text-align:center;padding:.6rem;">⏳ Uploading image…</div>';
+  _uploadImageFile(f, 'iex-catimg', 'iex-catprev');
 }
 function saveCatFromPopover(ev, catId){
   if(!window._adminMode) return;
