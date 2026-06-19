@@ -452,8 +452,8 @@ nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-co
 /* ── COMBO ── */
 .combo-sec{background:linear-gradient(135deg,#0d0d0d,#110000,#0d0d0d);border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a;padding:5rem;}
 .combo-inner{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;}
-.combo-art{position:relative;aspect-ratio:.75;max-width:380px;margin:0 auto;}
-.combo-wall{position:absolute;inset:0;background:linear-gradient(160deg,#1a0000,#0d0d0d);border:1px solid #2a2a2a;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.combo-art{position:relative;aspect-ratio:1 / 1;max-width:380px;margin:0 auto;}
+.combo-wall{position:absolute;inset:0;width:100%;height:100%;background:linear-gradient(160deg,#1a0000,#0d0d0d);border:1px solid #2a2a2a;overflow:hidden;display:flex;align-items:center;justify-content:center;}
 /* ── COMBO SLIDESHOW ── */
 .combo-slide-track{position:absolute;inset:0;display:flex;transition:transform .5s cubic-bezier(.4,0,.2,1);}
 .combo-slide{min-width:100%;height:100%;flex-shrink:0;overflow:hidden;}
@@ -604,7 +604,8 @@ footer{background:var(--black);border-top:1px solid #111;padding:2.5rem 5rem;dis
 .cs-total{display:flex;justify-content:space-between;margin-top:.6rem;padding-top:.4rem;}
 .cs-total-lbl{font-size:.65rem;opacity:.4;font-weight:600;text-transform:uppercase;}
 .cs-total-val{font-family:'Poppins',sans-serif;font-weight:800;font-size:1.1rem;}
-.success-state{display:none;padding:3rem 2rem;text-align:center;}
+.success-state{display:none;padding:4rem 2rem;text-align:center;}
+.success-state.visible{display:block;min-height:320px;}
 .success-state.visible{display:block;}
 .success-icon{font-size:2.4rem;display:block;margin-bottom:1rem;}
 .success-title{font-family:'Poppins',sans-serif;font-weight:800;font-size:2.5rem;margin-bottom:.5rem;}
@@ -3379,52 +3380,39 @@ var _comboSlideTimer = null;
 function renderComboArt(){
   var wall = document.getElementById('comboWall');
   if(!wall) return;
-
-  // Collect images: combo_imgs array first, fall back to combo_img, then auto-collage
-  var imgs = [];
-  var stored = PRICES.combo_imgs;
-  if(Array.isArray(stored) && stored.length) {
-    imgs = stored.filter(Boolean);
-  } else if(PRICES.combo_img) {
-    imgs = [PRICES.combo_img];
-  } else {
-    // Auto-collage from real poster images
+  var stored = [];
+  if(PRICES && Array.isArray(PRICES.combo_imgs) && PRICES.combo_imgs.length) stored = PRICES.combo_imgs;
+  else if(PRICES && Array.isArray(PRICES.comboimgs) && PRICES.comboimgs.length) stored = PRICES.comboimgs;
+  var imgs = stored.filter(Boolean);
+  if(!imgs.length && PRICES && PRICES.combo_img) imgs = [PRICES.combo_img].filter(Boolean);
+  if(!imgs.length){
     posters.forEach(function(p){ if(p.imgs && p.imgs.length) imgs.push(p.imgs[0]); });
-    if(!imgs.length){
-      wall.innerHTML = '<div class="combo-poster-label">FULL<br>WALL</div>';
-      _comboStopSlide();
-      return;
-    }
-    imgs.sort(function(){ return Math.random() - .5; });
-    imgs = imgs.slice(0, 8);
+    imgs = imgs.filter(Boolean).slice(0,8);
   }
-
-  if(imgs.length === 1){
-    // Single image — no carousel needed
-    wall.innerHTML = '<img src="'+imgs[0]+'" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="_comboImgErr(this)">';
+  if(!imgs.length){
+    wall.innerHTML = '<div class="combo-poster-label">FULL<br>WALL</div>';
     _comboStopSlide();
     return;
   }
-
-  // Build track
+  if(imgs.length === 1){
+    wall.innerHTML = '<img src="'+imgs[0]+'" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none';_comboImgErr(this)">';
+    _comboStopSlide();
+    return;
+  }
   var slides = imgs.map(function(src){
-    return '<div class="combo-slide"><img src="'+src+'" onerror="_gridImgErr(this)"></div>';
+    return '<div class="combo-slide"><img src="'+src+'" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.opacity=.15;_gridImgErr(this)"></div>';
   }).join('');
   var dots = imgs.map(function(_,i){
     return '<button class="combo-slide-dot'+(i===0?' active':'')+'" onclick="comboGoTo('+i+')" aria-label="Slide '+(i+1)+'"></button>';
   }).join('');
-
-  wall.innerHTML =
-    '<div class="combo-slide-track" id="comboTrack">'+slides+'</div>'+
+  wall.innerHTML = '<div class="combo-slide-track" id="comboTrack">'+slides+'</div>'+
     '<button class="combo-slide-arr prev" onclick="comboMove(-1)" aria-label="Previous">&#8249;</button>'+
     '<button class="combo-slide-arr next" onclick="comboMove(1)" aria-label="Next">&#8250;</button>'+
     '<div class="combo-slide-dots">'+dots+'</div>';
-
   _comboSlideIdx = 0;
   _comboStopSlide();
   _comboSlideTimer = setInterval(function(){ comboMove(1); }, 3000);
 }
-
 function _comboStopSlide(){
   if(_comboSlideTimer){ clearInterval(_comboSlideTimer); _comboSlideTimer = null; }
 }
