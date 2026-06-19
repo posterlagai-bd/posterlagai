@@ -2058,6 +2058,8 @@ let magazines=gs('pl2_mags',DEF_MAGS);
 let reviews=gs('pl2_revs',DEF_REVS);
 let orders=gs('pl2_orders',[]);
 let PRICES=gs('pl2_pr',DEF_PR);
+// Load combo images from their own key (separate to avoid localStorage size limits)
+(function(){ try { var ci=localStorage.getItem('pl2_combo_imgs'); if(ci){ var arr=JSON.parse(ci); if(Array.isArray(arr)) PRICES.combo_imgs=arr; } } catch(e){} })();
 let nid=gs('pl2_nid',500);
 let cart=[];
 
@@ -2253,6 +2255,7 @@ function addPosterToCart(pid){
 const catAutoTimers={};
 function renderStore(){
   PRICES=gs('pl2_pr',DEF_PR);
+  try { var ci=localStorage.getItem('pl2_combo_imgs'); if(ci){ var arr=JSON.parse(ci); if(Array.isArray(arr)) PRICES.combo_imgs=arr; } } catch(e){}
   renderCategories();
   renderPolaroidCarousel();
   renderMagazines();
@@ -3045,7 +3048,8 @@ function showAdminPage(id){
 }
 function refreshAdmin(){updateDash();renderAdminCats();loadPrices();}
 function updateDash(){
-  PRICES=gs('pl2_pr',DEF_PR);cats=gs('pl2_cats',DEF_CATS);posters=gs('pl2_posters',DEF_POSTERS);polaroids=gs('pl2_pols',DEF_POLS);reviews=gs('pl2_revs',DEF_REVS);orders=gs('pl2_orders',[]);
+  PRICES=gs('pl2_pr',DEF_PR);
+  try { var ci=localStorage.getItem('pl2_combo_imgs'); if(ci){ var arr=JSON.parse(ci); if(Array.isArray(arr)) PRICES.combo_imgs=arr; } } catch(e){}cats=gs('pl2_cats',DEF_CATS);posters=gs('pl2_posters',DEF_POSTERS);polaroids=gs('pl2_pols',DEF_POLS);reviews=gs('pl2_revs',DEF_REVS);orders=gs('pl2_orders',[]);
   document.getElementById('dash-cat').textContent=cats.length;
   document.getElementById('dash-post').textContent=posters.length;
   document.getElementById('dash-pol').textContent=polaroids.length;
@@ -3446,6 +3450,7 @@ function comboMove(dir){
 }
 function loadPrices(){
   PRICES=gs('pl2_pr',DEF_PR);
+  try { var ci=localStorage.getItem('pl2_combo_imgs'); if(ci){ var arr=JSON.parse(ci); if(Array.isArray(arr)) PRICES.combo_imgs=arr; } } catch(e){}
   ['a5','a4','a3','pol','m8','m12','m16','combo'].forEach(k=>{const el=document.getElementById('pr-'+k);if(el)el.value=PRICES[k];});
   var ci=document.getElementById('pr-combo-img');if(ci)ci.value=PRICES.combo_img||'';
   document.getElementById('pr-dd').value=PRICES.dd;
@@ -3498,6 +3503,7 @@ function addComboImgs(input){
   input.value = '';
   // Reload fresh from storage so existing combo_imgs are not lost
   PRICES = gs('pl2_pr', DEF_PR);
+  try { var _ci=localStorage.getItem('pl2_combo_imgs'); if(_ci){ var _arr=JSON.parse(_ci); if(Array.isArray(_arr)) PRICES.combo_imgs=_arr; } } catch(e){}
   if(!Array.isArray(PRICES.combo_imgs)) PRICES.combo_imgs = [];
   var grid = document.getElementById('comboImgGrid');
   if(grid) grid.innerHTML = '<div style="font-size:.7rem;color:var(--red);padding:.5rem;">⏳ Uploading '+files.length+' image'+(files.length>1?'s':'')+' to storage…</div>';
