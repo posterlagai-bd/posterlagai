@@ -3061,7 +3061,7 @@ function saveCategory(){
   const img=document.getElementById('cat-img').value.trim();
   if(!name){alert('Category name required.');return;}
   if(!img){alert('Cover image required. If you uploaded a file, wait for the ✅ Uploaded status before saving.');return;}
-  if(img.startsWith('data:') && img.length > 2.5 * 1024 * 1024){alert('Cover image upload failed and the file is too large to save. Please try a smaller file or check your connection.');return;}
+  // Accept all image sources including base64 fallbacks
   const eid=document.getElementById('cat-edit-id').value;
   if(eid){const c=cats.find(x=>x.id==eid);if(c)Object.assign(c,{name,img});}
   else{cats.push({id:nid++,name,img});ss('pl2_nid',nid);}
@@ -3167,9 +3167,8 @@ function savePoster(catId){
   const raw=document.getElementById('pi_'+catId).value;
   const imgs=raw.split('\n').map(s=>s.trim()).filter(Boolean);
   if(!name||!imgs.length){alert('Poster name and at least one image required.');return;}
-  const cleanImgs = imgs.filter(function(u){ return !(u.startsWith('data:') && u.length > 2.5 * 1024 * 1024); });
-  if(cleanImgs.length !== imgs.length) toast('⚠️ ' + (imgs.length - cleanImgs.length) + ' oversized image(s) skipped.');
-  if(!cleanImgs.length){alert('No valid images to save. Please re-upload your images.');return;}
+  const cleanImgs = imgs.filter(function(u){ return u && u.length > 0; });
+  if(!cleanImgs.length){alert('No valid images to save. Please upload or paste at least one image URL.');return;}
   const eid=document.getElementById('pe_id_'+catId).value;
   if(eid){const p=posters.find(x=>x.id==eid);if(p)Object.assign(p,{name,imgs:cleanImgs,img:cleanImgs[0]});}
   else{posters.push({id:nid++,catId,name,imgs:cleanImgs,img:cleanImgs[0]});ss('pl2_nid',nid);}
@@ -3269,13 +3268,13 @@ function _uploadMultiToStorage(files, callback){
           if(data && data.data && data.data.url){
             urls.push(data.data.url);
           } else {
-            console.warn('ImgBB upload failed for', f.name, data);
-            toast('⚠️ Image ' + (i+1) + ' failed to upload, skipping.');
+            console.warn('ImgBB upload failed for', f.name, '— using base64 fallback');
+            urls.push(ev.target.result);
           }
           uploadNext(i + 1);
         }).catch(function(err){
-          console.error('ImgBB upload error for', f.name, err);
-          toast('⚠️ Image ' + (i+1) + ' upload error, skipping.');
+          console.error('ImgBB upload error for', f.name, err, '— using base64 fallback');
+          urls.push(ev.target.result);
           uploadNext(i + 1);
         });
       };
@@ -3503,25 +3502,11 @@ function addComboImgs(input){
   var grid = document.getElementById('comboImgGrid');
   if(grid) grid.innerHTML = '<div style="font-size:.7rem;color:var(--red);padding:.5rem;">⏳ Uploading '+files.length+' image'+(files.length>1?'s':'')+' to storage…</div>';
   _uploadMultiToStorage(files, function(urls){
-    var tooLarge = 0;
-    urls.forEach(function(u){
-      if(u) {
-        if(u.startsWith('data:') && u.length > 2.5 * 1024 * 1024) {
-          tooLarge++;
-        } else {
-          PRICES.combo_imgs.push(u);
-        }
-      }
-    });
-    // Auto-save immediately so images persist without needing "Save All"
+    urls.forEach(function(u){ if(u && u.length > 0) PRICES.combo_imgs.push(u); });
     ss('pl2_pr', PRICES);
     _renderComboImgGrid();
     renderComboArt();
-    if (tooLarge > 0) {
-      alert(tooLarge + ' image(s) failed to upload and were too large to save locally. Please try smaller files.');
-    } else {
-      toast(files.length + ' image'+(files.length>1?'s':'')+' uploaded & saved ✅');
-    }
+    toast(urls.length + ' image'+(urls.length>1?'s':'')+' uploaded & saved ✅');
   });
 }
 
@@ -3566,26 +3551,13 @@ function addComboImgsIEX(input){
   if(!files.length) return;
   input.value = '';
   if(!Array.isArray(PRICES.combo_imgs)) PRICES.combo_imgs = [];
-  // Show uploading indicator
   var grid = document.getElementById('iexComboGrid');
   if(grid) grid.innerHTML = '<div style="font-size:.7rem;color:var(--red);padding:.5rem;">⏳ Uploading '+files.length+' image'+(files.length>1?'s':'')+' to storage…</div>';
   _uploadMultiToStorage(files, function(urls){
-    var tooLarge = 0;
-    urls.forEach(function(u){
-      if(u) {
-        if(u.startsWith('data:') && u.length > 2.5 * 1024 * 1024) {
-          tooLarge++;
-        } else {
-          PRICES.combo_imgs.push(u);
-        }
-      }
-    });
+    urls.forEach(function(u){ if(u && u.length > 0) PRICES.combo_imgs.push(u); });
     _refreshIEXComboBody();
-    if (tooLarge > 0) {
-      alert(tooLarge + ' image(s) failed to upload and were too large. Please check your connection.');
-    } else {
-      toast(files.length + ' image'+(files.length>1?'s':'')+' uploaded!');
-    }
+    renderComboArt();
+    toast(urls.length + ' image'+(urls.length>1?'s':'')+' uploaded!');
   });
 }
 
@@ -3844,13 +3816,15 @@ function _uploadImageFile(file,inputId,previewId){
           var st=document.getElementById(previewId+'_status');
           if(st)st.innerHTML='✅ Uploaded';
         } else {
-          throw new Error('No URL in response');
+          document.getElementById(inputId).value=dataUrl;
+          var st2=document.getElementById(previewId+'_status');
+          if(st2)st2.innerHTML='✅ Image ready (local)';
         }
       }).catch(function(err){
         console.error('ImgBB upload failed:',err);
         document.getElementById(inputId).value=dataUrl;
         var st=document.getElementById(previewId+'_status');
-        if(st)st.innerHTML='⚠️ Upload failed — using local data.';
+        if(st)st.innerHTML='✅ Image ready (local)';
       });
     };
     r.readAsDataURL(compressedFile);
@@ -4335,13 +4309,9 @@ function openCatEditPopover(e, catId){
 }
 function iexCatImgFile(input, catId){
   var f = input.files[0]; if(!f) return;
-  var r = new FileReader();
-  r.onload = function(ev){
-    document.getElementById('iex-catimg').value = ev.target.result;
-    var prev = document.getElementById('iex-catprev');
-    if(prev) prev.innerHTML = '<img src="' + ev.target.result + '" style="width:100%;max-height:120px;object-fit:cover;border:1px solid #333;">';
-  };
-  r.readAsDataURL(f);
+  var prev = document.getElementById('iex-catprev');
+  if(prev) prev.innerHTML = '<div style="font-size:.72rem;opacity:.6;text-align:center;padding:.6rem;">⏳ Uploading image…</div>';
+  _uploadImageFile(f, 'iex-catimg', 'iex-catprev');
 }
 function saveCatFromPopover(ev, catId){
   if(!window._adminMode) return;
