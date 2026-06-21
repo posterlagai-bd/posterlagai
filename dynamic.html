@@ -1368,7 +1368,7 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
   </ul>
   <div class="nav-right">
     <button class="cart-btn" onclick="openCart()">🛒 Cart<span class="cart-count" id="cartCount">0</span></button>
-    <button style="font-family:'Poppins',sans-serif;font-weight:700;font-size:.7rem;letter-spacing:.12em;color:var(--black);background:var(--red);border:none;padding:.55rem 1.2rem;cursor:pointer;" onclick="checkoutFromCart()">Checkout</button>
+    <button style="font-family:'Poppins',sans-serif;font-weight:700;font-size:.7rem;letter-spacing:.12em;color:var(--black);background:var(--red);border:none;padding:.55rem 1.2rem;cursor:pointer;" onclick="quickOrderNow({cartId:'qo_'+Date.now()+Math.random().toString(36).slice(2),type:'poster',name:p.name,img:img,sz:sz,lam:lam,unitPrice:pr,qty:1})">Checkout</button>
   </div>
 </nav>
 
@@ -1711,7 +1711,7 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
   <div class="cart-footer" id="cartFooter" style="display:none;">
     <div class="cart-total-row"><span class="cart-total-label">Subtotal</span><span class="cart-total-val" id="cartSubtotal">৳0</span></div>
     <div style="font-size:.65rem;opacity:.35;margin-bottom:1rem;">+ Delivery at checkout</div>
-    <button class="cart-checkout-btn" onclick="checkoutFromCart()">CHECKOUT →</button>
+    <button class="cart-checkout-btn" onclick="quickOrderNow({cartId:'qo_'+Date.now()+Math.random().toString(36).slice(2),type:'poster',name:p.name,img:img,sz:sz,lam:lam,unitPrice:pr,qty:1})">CHECKOUT →</button>
     <button class="cart-clear-btn" onclick="clearCart()">Clear Cart</button>
   </div>
 </div>
@@ -2230,6 +2230,17 @@ function pickLam(el,pid){
   el.classList.add('active');
 }
 
+
+function flashAddBtn(btn){
+  if(!btn) return;
+  const old = btn.textContent;
+  btn.classList.add('added','pulse-add');
+  btn.textContent = 'ADDED ✓';
+  setTimeout(()=>{
+    btn.classList.remove('added','pulse-add');
+    btn.textContent = old || '+ ADD TO CART';
+  }, 2200);
+}
 function addPosterToCart(pid){
   const p=posters.find(x=>x.id===pid);if(!p)return;
   const PR=gs('pl2_pr',DEF_PR);
@@ -2248,6 +2259,15 @@ function addPosterToCart(pid){
   if(btn){btn.textContent='✓ ADDED!';btn.classList.add('added');setTimeout(()=>{btn.textContent='+ ADD TO CART';btn.classList.remove('added');},1500);}
   toast(`${p.name} (${sz}, ${lam}) added to cart!`);
 }
+
+function quickOrderNow(item){
+  cart = [item];
+  cartSelected = new Set([item.cartId]);
+  updateCartCount();
+  syncCartToFb();
+  openOrderModal(item.type || 'poster', item.name, item.img);
+}
+
 
 // ── CATEGORY CARDS on storefront ──
 const catAutoTimers={};
@@ -3375,6 +3395,20 @@ function _gridImgErr(img){img.parentNode.style.background='#1a1a1a';}
 var _comboSlideIdx = 0;
 var _comboSlideTimer = null;
 
+
+function renderComboThumbs(){
+  const box = document.getElementById('comboThumbStrip');
+  if(!box) return;
+  const imgs = (window.comboImgs && comboImgs.length) ? comboImgs : [];
+  box.innerHTML = imgs.map((src,i)=>`<div class=combo-thumb ${i===0?'active':''} onclick="setComboHero(${i})"><img src='${src}' alt='combo ${i+1}'></div>`).join('');
+}
+function setComboHero(i){
+  const track = document.getElementById('comboTrack');
+  if(!track) return;
+  track.dataset.idx = i;
+  track.style.transform = `translateX(-${i*100}%)`;
+  document.querySelectorAll('.combo-thumb').forEach((d,j)=>d.classList.toggle('active', j===i));
+}
 function renderComboArt(){
   var wall = document.getElementById('comboWall');
   if(!wall) return;
