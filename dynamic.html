@@ -3380,7 +3380,7 @@ var _comboSlideTimer = null;
 function renderComboThumbs(){
   const box = document.getElementById('comboThumbStrip');
   if(!box) return;
-  const imgs = (window.comboImgs && comboImgs.length) ? comboImgs : [];
+  const imgs = (window.comboImgs && window.comboImgs.length) ? window.comboImgs : [];
   box.innerHTML = imgs.map((src,i)=>`<div class=combo-thumb ${i===0?'active':''} onclick="setComboHero(${i})"><img src='${src}' alt='combo ${i+1}'></div>`).join('');
 }
 function setComboHero(i){
@@ -4960,3 +4960,47 @@ function deleteMagFromPopover(ev, mid){
 </body>
 </html>
 
+
+<script>
+(function(){
+  const K='pl2_comboSlides';
+  function loadSlides(){
+    try{return JSON.parse(localStorage.getItem(K)||'[]')}catch(e){return []}
+  }
+  function saveSlides(arr){
+    try{localStorage.setItem(K,JSON.stringify(arr||[]))}catch(e){}
+    window.comboImgs = arr||[];
+  }
+  window.comboImgs = loadSlides();
+  const origAddComboImgs = window.addComboImgs;
+  window.addComboImgs = function(input){
+    const files = Array.from(input.files||[]).filter(f=>f.type.startsWith('image'));
+    if(!files.length) return;
+    let pending = files.length, added = [];
+    files.forEach(f=>{
+      const r=new FileReader();
+      r.onload=e=>{
+        added.push(e.target.result);
+        if(--pending===0){
+          const merged = [...window.comboImgs, ...added];
+          saveSlides(merged);
+          if(typeof origAddComboImgs==='function') try{origAddComboImgs(input)}catch(e){}
+          if(typeof renderComboThumbs==='function') renderComboThumbs();
+          if(typeof renderComboArt==='function') renderComboArt();
+        }
+      };
+      r.readAsDataURL(f);
+    });
+  };
+  const origAddComboImgs2 = window.addComboImgs;
+  const saveBtn = document.getElementById('saveComboSlidesBtn') || document.querySelector('.combo-save-btn');
+  if(saveBtn){
+    saveBtn.onclick = function(){
+      saveSlides(window.comboImgs||[]);
+      if(typeof renderComboThumbs==='function') renderComboThumbs();
+      if(typeof renderComboArt==='function') renderComboArt();
+      alert('Slides saved');
+    };
+  }
+})();
+</script>
