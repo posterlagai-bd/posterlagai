@@ -2234,37 +2234,18 @@ function pickLam(el,pid){
 function flashAddBtn(btn){
   if(!btn) return;
   const old = btn.textContent;
-  btn.classList.add('added','pulse-add');
+  flashAddBtn(btn);
   btn.textContent = 'ADDED ✓';
+  void btn.offsetWidth;
   setTimeout(()=>{
     btn.classList.remove('added','pulse-add');
     btn.textContent = old || '+ ADD TO CART';
   }, 2200);
 }
-function addPosterToCart(pid){
-  const p=posters.find(x=>x.id===pid);if(!p)return;
-  const PR=gs('pl2_pr',DEF_PR);
-  const szEl=document.querySelector(`#sz_${pid} .size-chip.active`);
-  const lamEl=document.querySelector(`#lm_${pid} .lam-chip.active`);
-  const sz=szEl?szEl.dataset.sz:'A5';
-  const lam=lamEl?lamEl.dataset.lam:'Gloss';
-  const pr=szEl?parseInt(szEl.dataset.pr):PR.a5;
-  const img=p.imgs&&p.imgs.length?p.imgs[0]:'';
-  const existing=cart.find(i=>i.type==='poster'&&i.pid===pid&&i.sz===sz&&i.lam===lam);
-  if(existing){existing.qty++;}
-  else{cart.push({cartId:Date.now()+'_'+Math.random().toString(36).slice(2),type:'poster',pid,name:p.name,img,sz,lam,unitPrice:pr,qty:1});}
-  updateCartCount();
-  syncCartToFb();
-  const btn=document.getElementById('acb_'+pid);
-  if(btn){btn.textContent='✓ ADDED!';btn.classList.add('added');setTimeout(()=>{btn.textContent='+ ADD TO CART';btn.classList.remove('added');},1500);}
-  toast(`${p.name} (${sz}, ${lam}) added to cart!`);
-}
-
 function quickOrderNow(item){
-  cart = [item];
   cartSelected = new Set([item.cartId]);
+  window.__quickOrderItem = item;
   updateCartCount();
-  syncCartToFb();
   openOrderModal(item.type || 'poster', item.name, item.img);
 }
 
@@ -2606,7 +2587,7 @@ function cpAddToCart(){
   });
   updateCartCount();syncCartToFb();
   const btn=document.getElementById('cpAddBtn');
-  btn.textContent='✓ ADDED!';btn.classList.add('added');
+  btn.textContent='✓ ADDED!';flashAddBtn(btn);
   setTimeout(()=>{btn.textContent='+ ADD TO CART';btn.classList.remove('added');},1600);
   const summary=cpFiles.map(f=>f.sz+' '+f.lam).join(', ');
   toast(cpFiles.length+' custom poster'+(cpFiles.length>1?'s':'')+' added! ('+summary+')');
@@ -2671,7 +2652,7 @@ function cpolAddToCart(){
   });
   updateCartCount();syncCartToFb();
   const btn=document.getElementById('cpolAddBtn');
-  btn.textContent='✓ ADDED!';btn.classList.add('added');
+  btn.textContent='✓ ADDED!';flashAddBtn(btn);
   setTimeout(()=>{btn.textContent='+ ADD TO CART';btn.classList.remove('added');},1600);
   toast(cpolFiles.length+' custom polaroid'+(cpolFiles.length>1?'s':'')+' added to cart!');
   cpolFiles=[];cpolRenderGrid();
