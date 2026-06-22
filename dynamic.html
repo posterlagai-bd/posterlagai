@@ -1275,7 +1275,7 @@ body.edit-mode [data-editable]:hover::after{content:attr(data-edit-label);positi
   @keyframes modalSlideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
 }
 </style>
-</head>
+<style>.add-cart-btn.pulse-add{transform:scale(1.04);box-shadow:0 0 0 4px rgba(37,211,102,.22)} .add-cart-btn.added{background:#25d366!important;color:#fff!important}</style></head>
 <body>
 
 <!-- INTRO ANIMATION -->
@@ -4904,6 +4904,58 @@ function deleteMagFromPopover(ev, mid){
     <button class="iep-save" id="iepSaveBtn" type="button">SAVE →</button>
   </div>
 </div>
+
+
+<script>
+(function(){
+  function flashAddBtn(btn){
+    if(!btn) return;
+    const old = btn.textContent;
+    btn.classList.add('added','pulse-add');
+    btn.textContent = 'ADDED ✓';
+    void btn.offsetWidth;
+    setTimeout(()=>{
+      btn.classList.remove('added','pulse-add');
+      btn.textContent = old || '+ ADD TO CART';
+    }, 2200);
+  }
+
+  const originalAddPosterToCart = window.addPosterToCart;
+  const originalAddMagToCart = window.addMagToCart;
+  const originalCpAddToCart = window.cpAddToCart;
+  const originalCpolAddToCart = window.cpolAddToCart;
+  const originalQuickOrderNow = window.quickOrderNow;
+
+  window.addPosterToCart = function(pid){
+    const btn = document.getElementById('acb'+pid);
+    if(originalAddPosterToCart) originalAddPosterToCart(pid);
+    flashAddBtn(btn);
+  };
+
+  window.addMagToCart = function(mid, name, img){
+    if(originalAddMagToCart) originalAddMagToCart(mid, name, img);
+    document.querySelectorAll('.mag-cart-btn').forEach(btn => {
+      if(btn.textContent.toLowerCase().includes('add to cart')) flashAddBtn(btn);
+    });
+  };
+
+  window.cpAddToCart = function(){
+    const btn = document.getElementById('cpAddBtn');
+    if(originalCpAddToCart) originalCpAddToCart();
+    flashAddBtn(btn);
+  };
+
+  window.cpolAddToCart = function(){
+    const btn = document.getElementById('cpolAddBtn');
+    if(originalCpolAddToCart) originalCpolAddToCart();
+    flashAddBtn(btn);
+  };
+
+  window.quickOrderNow = function(item){
+    if(originalQuickOrderNow) originalQuickOrderNow(item);
+  };
+})();
+</script>
 
 </body>
 </html>
